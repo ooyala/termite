@@ -1,20 +1,20 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class TermiteLoggerTest < Scope::TestCase
-  context "with termite manifest" do
+  context "with termite personifest" do
     setup do
       Termite.reset
 
-      manifest_text = <<MANIFEST_TEXT
+      personifest_text = <<PERSONIFEST_TEXT
 {
   "application": "foo_app"
 }
-MANIFEST_TEXT
+PERSONIFEST_TEXT
 
-      # I'm not using the default manifest because tests have to
+      # I'm not using the default personifest because tests have to
       # be runnable with a test runner, so $0 can be, like, anything.
-      ENV['TERMITE_MANIFEST'] = "/tmp/bob.txt"
-      File.expects(:read).with("/tmp/bob.txt").returns(manifest_text)
+      ENV['TERMITE_PERSONIFEST'] = "/tmp/bob.txt"
+      File.expects(:read).with("/tmp/bob.txt").returns(personifest_text)
     end
 
     context "and only default logging levels set" do

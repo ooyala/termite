@@ -10,7 +10,7 @@ module Termite
     attr_accessor :mutex
   end
 
-  MANIFEST_EXTENSION = ".fj"
+  PERSONIFEST_EXTENSION = ".personifest"
 
   Termite.mutex = Mutex.new
 
@@ -21,11 +21,11 @@ module Termite
     @termite_initialized = nil
   end
 
-  def self.read_manifest
+  def self.read_personifest
     return if @termite_initialized
 
     Termite.mutex.synchronize {
-      file_path = ENV['TERMITE_MANIFEST'] || default_manifest_name
+      file_path = ENV['TERMITE_PERSONIFEST'] || default_personifest_name
       contents = File.read(file_path)
       @termite_data = MultiJson.decode(contents);
 
@@ -35,10 +35,10 @@ module Termite
     @termite_initialized = true
   end
 
-  def self.default_manifest_name(executable = $0)
+  def self.default_personifest_name(executable = $0)
     suffix = File.extname(executable)
     executable[0..(executable.length - 1 - suffix.size)] +
-      MANIFEST_EXTENSION
+      PERSONIFEST_EXTENSION
   end
 
   # This is a convenience function because the Ruby
@@ -57,7 +57,7 @@ module Termite
 
   class Logger < SyslogLogger
     def initialize
-      Termite.read_manifest
+      Termite.read_personifest
 
       super(Termite.application)
 
