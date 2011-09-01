@@ -58,7 +58,7 @@ end
 
 module Termite
   class Logger < SyslogLogger
-    def initialize
+    def initialize(logdev, shift_age = 0, shift_size = 1048576)
       Ecology.read
 
       super(Ecology.application)
