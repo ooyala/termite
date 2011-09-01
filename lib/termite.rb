@@ -1,8 +1,9 @@
 require "rubygems"
 require "termite/version.rb"
 require "multi_json"
-require "syslog_logger"
 require "thread"
+require "syslog"
+require "logger"
 
 module Ecology
   class << self
@@ -57,19 +58,76 @@ module Ecology
 end
 
 module Termite
-  class Logger < SyslogLogger
+  class Logger
+    ##
+    # Maps Logger warning types to syslog(3) warning types.
+
+    LOGGER_MAP = {
+      :unknown => :alert,
+      :fatal   => :err,
+      :error   => :warning,
+      :warn    => :notice,
+      :info    => :info,
+      :debug   => :debug,
+    }
+
+    ##
+    # Maps Logger log levels to their values so we can silence.
+
+    LOGGER_LEVEL_MAP = {}
+
+    LOGGER_MAP.each_key do |key|
+      LOGGER_LEVEL_MAP[key] = ::Logger.const_get key.to_s.upcase
+    end
+
+    ##
+    # Maps Logger log level values to syslog log levels.
+
+    LEVEL_LOGGER_MAP = {}
+
+    LOGGER_LEVEL_MAP.invert.each do |level, severity|
+      LEVEL_LOGGER_MAP[level] = LOGGER_MAP[severity]
+    end
+
+    ##
+    # Builds a methods for level +meth+.
+
+    def self.make_methods(meth)
+      eval <<-EOM, nil, __FILE__, __LINE__ + 1
+        def #{meth}(message = nil)
+          return true if #{LOGGER_LEVEL_MAP[meth]} < @level
+          SYSLOG.#{LOGGER_MAP[meth]} clean(message || yield)
+          return true
+        end
+
+        def #{meth}?
+          @level <= ::Logger::#{meth.to_s.upcase}
+        end
+      EOM
+    end
+
+    LOGGER_MAP.each_key do |level|
+      make_methods level
+    end
+
+    ##
+    # Log level for Logger compatibility.
+
+    attr_accessor :level
+
     def initialize(logdev, shift_age = 0, shift_size = 1048576)
       Ecology.read
 
-      super(Ecology.application)
+      @level = ::Logger::DEBUG
 
-      # SyslogLogger gets this wrong for inheritance, and
-      # winds up setting Termite::Logger::SYSLOG but not
-      # SyslogLogger::SYSLOG.  We'll fix its mistake.
-      SyslogLogger.const_set :SYSLOG, SYSLOG
+      return if defined? SYSLOG
+      self.class.const_set :SYSLOG, Syslog.open(Ecology.application)
     end
 
-    def add(priority, message, data, options = {})
+    def add(severity, message = nil, data = nil, options = {}, &block)
+      severity ||= ::Logger::UNKNOWN
+      return true if severity < @level
+
       if options[:rate]
         # TODO(noah) do the sampling here and just exit with some % chance?
       end
@@ -80,9 +138,36 @@ module Termite
 
       tid = Ecology.thread_id(Thread.current)
 
-      sl_message = "[#{tid}]: #{message} #{data}"
+      sl_message = "[#{tid}]: #{clean(message || block.call)} #{data}"
 
-      super(priority, sl_message)
+      SYSLOG.send LEVEL_LOGGER_MAP[severity], sl_message
+      true
+    end
+
+    ##
+    # Allows messages of a particular log level to be ignored temporarily.
+    #
+    # Can you say "Broken Windows"?
+
+    def silence(temporary_level = Logger::ERROR)
+      old_logger_level = @level
+      @level = temporary_level
+      yield
+    ensure
+      @level = old_logger_level
+    end
+
+    private
+
+    ##
+    # Clean up messages so they're nice and pretty.
+
+    def clean(message)
+      message = message.to_s.dup
+      message.strip!
+      message.gsub!(/%/, '%%') # syslog(3) freaks on % (printf)
+      message.gsub!(/\e\[[^m]*m/, '') # remove useless ansi color codes
+      return message
     end
   end
 end

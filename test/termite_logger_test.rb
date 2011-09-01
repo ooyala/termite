@@ -23,7 +23,7 @@ ECOLOGY_TEXT
       end
 
       should "correctly send logs to Syslog" do
-        SyslogLogger::SYSLOG.expects(:err).with("[main]: foo! {}")
+        Termite::Logger::SYSLOG.expects(:err).with("[main]: foo! {}")
         @logger.add(Logger::FATAL, "foo!", {})
       end
     end

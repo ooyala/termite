@@ -2,16 +2,11 @@ PATH
   remote: .
   specs:
     termite (0.0.1)
-      SyslogLogger
       multi_json
 
 GEM
   remote: http://rubygems.org/
   specs:
-    SyslogLogger (1.4.0)
-      hoe (>= 1.2.0)
-    hoe (2.9.4)
-      rake (>= 0.8.7)
     minitest (2.3.0)
     mocha (0.9.12)
     multi_json (1.0.3)
