@@ -94,10 +94,9 @@ module Termite
 
     def self.make_methods(meth)
       eval <<-EOM, nil, __FILE__, __LINE__ + 1
-        def #{meth}(message = nil)
+        def #{meth}(message = nil, &block)
           return true if #{LOGGER_LEVEL_MAP[meth]} < @level
-          SYSLOG.#{LOGGER_MAP[meth]} clean(message || yield)
-          return true
+          add(:#{meth}, message, &block)
         end
 
         def #{meth}?
@@ -114,11 +113,14 @@ module Termite
     # Log level for Logger compatibility.
 
     attr_accessor :level
+    attr_accessor :file_logger
 
-    def initialize(logdev, shift_age = 0, shift_size = 1048576)
+    def initialize(logdev = nil, shift_age = 0, shift_size = 1048576)
       Ecology.read
 
       @level = ::Logger::DEBUG
+
+      @file_logger = ::Logger.new(logdev, shift_age, shift_size) if logdev
 
       return if defined? SYSLOG
       self.class.const_set :SYSLOG, Syslog.open(Ecology.application)
@@ -141,6 +143,8 @@ module Termite
       sl_message = "[#{tid}]: #{clean(message || block.call)} #{data}"
 
       SYSLOG.send LEVEL_LOGGER_MAP[severity], sl_message
+      @file_logger.send(LEVEL_LOGGER_MAP[severity], sl_message) if @file_logger
+
       true
     end
 
