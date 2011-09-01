@@ -13,8 +13,8 @@ PERSONIFEST_TEXT
 
       # I'm not using the default personifest because tests have to
       # be runnable with a test runner, so $0 can be, like, anything.
-      ENV['TERMITE_PERSONIFEST'] = "/tmp/bob.txt"
-      File.expects(:read).with("/tmp/bob.txt").returns(personifest_text)
+      ENV['TERMITE_PERSONIFEST'] = "/tmp/bob.personifest"
+      File.expects(:read).with("/tmp/bob.personifest").returns(personifest_text)
     end
 
     context "and only default logging levels set" do

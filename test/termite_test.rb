@@ -4,10 +4,10 @@ require "thread"
 class TermiteTest < Scope::TestCase
   context "with termite personifest" do
     should "correctly determine default personifest names" do
-      assert_equal "/path/to/bob.txt.fj", Termite.default_personifest_name("/path/to/bob.txt.rb")
-      assert_equal "relative/path/to/app.fj", Termite.default_personifest_name("relative/path/to/app.rb")
-      assert_equal "/path/to/bob.fj", Termite.default_personifest_name("/path/to/bob.sh")
-      assert_equal "\\path\\to\\bob.fj", Termite.default_personifest_name("\\path\\to\\bob.EXE")
+      assert_equal "/path/to/bob.txt.personifest", Termite.default_personifest_name("/path/to/bob.txt.rb")
+      assert_equal "relative/path/to/app.personifest", Termite.default_personifest_name("relative/path/to/app.rb")
+      assert_equal "/path/to/bob.personifest", Termite.default_personifest_name("/path/to/bob.sh")
+      assert_equal "\\path\\to\\bob.personifest", Termite.default_personifest_name("\\path\\to\\bob.EXE")
     end
 
     should "respect the TERMITE_PERSONIFEST environment variable" do
