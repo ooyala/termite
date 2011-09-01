@@ -123,7 +123,7 @@ module Termite
       @file_logger = ::Logger.new(logdev, shift_age, shift_size) if logdev
 
       return if defined? SYSLOG
-      self.class.const_set :SYSLOG, Syslog.open(Ecology.application)
+      Termite::Logger.const_set :SYSLOG, Syslog.open(Ecology.application)
     end
 
     def add(severity, message = nil, data = nil, options = {}, &block)
