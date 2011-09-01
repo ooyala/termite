@@ -2,25 +2,25 @@ require File.join(File.dirname(__FILE__), "test_helper.rb")
 require "thread"
 
 class TermiteTest < Scope::TestCase
-  context "with termite personifest" do
-    should "correctly determine default personifest names" do
-      assert_equal "/path/to/bob.txt.personifest", Termite.default_personifest_name("/path/to/bob.txt.rb")
-      assert_equal "relative/path/to/app.personifest", Termite.default_personifest_name("relative/path/to/app.rb")
-      assert_equal "/path/to/bob.personifest", Termite.default_personifest_name("/path/to/bob.sh")
-      assert_equal "\\path\\to\\bob.personifest", Termite.default_personifest_name("\\path\\to\\bob.EXE")
+  context "with ecology" do
+    should "correctly determine default ecology names" do
+      assert_equal "/path/to/bob.txt.ecology", Ecology.default_ecology_name("/path/to/bob.txt.rb")
+      assert_equal "relative/path/to/app.ecology", Ecology.default_ecology_name("relative/path/to/app.rb")
+      assert_equal "/path/to/bob.ecology", Ecology.default_ecology_name("/path/to/bob.sh")
+      assert_equal "\\path\\to\\bob.ecology", Ecology.default_ecology_name("\\path\\to\\bob.EXE")
     end
 
-    should "respect the TERMITE_PERSONIFEST environment variable" do
-      Termite.reset
-      ENV['TERMITE_PERSONIFEST'] = '/tmp/bobo.txt'
+    should "respect the TERMITE_ECOLOGY environment variable" do
+      Ecology.reset
+      ENV['TERMITE_ECOLOGY'] = '/tmp/bobo.txt'
       File.expects(:read).with('/tmp/bobo.txt').returns('{ "application": "foo_app" }')
-      Termite.read_personifest
+      Ecology.read
 
-      assert_equal "foo_app", Termite.application      
+      assert_equal "foo_app", Ecology.application
     end
 
     should "Recognize that this is the main thread" do
-      assert_equal "main", Termite.thread_id(Thread.current)
+      assert_equal "main", Ecology.thread_id(Thread.current)
     end
 
   end

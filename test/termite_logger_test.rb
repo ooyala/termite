@@ -1,20 +1,20 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class TermiteLoggerTest < Scope::TestCase
-  context "with termite personifest" do
+  context "with termite ecology" do
     setup do
-      Termite.reset
+      Ecology.reset
 
-      personifest_text = <<PERSONIFEST_TEXT
+      ecology_text = <<ECOLOGY_TEXT
 {
   "application": "foo_app"
 }
-PERSONIFEST_TEXT
+ECOLOGY_TEXT
 
-      # I'm not using the default personifest because tests have to
+      # I'm not using the default ecology because tests have to
       # be runnable with a test runner, so $0 can be, like, anything.
-      ENV['TERMITE_PERSONIFEST'] = "/tmp/bob.personifest"
-      File.expects(:read).with("/tmp/bob.personifest").returns(personifest_text)
+      ENV['TERMITE_ECOLOGY'] = "/tmp/bob.ecology"
+      File.expects(:read).with("/tmp/bob.ecology").returns(ecology_text)
     end
 
     context "and only default logging levels set" do

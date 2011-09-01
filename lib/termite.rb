@@ -4,41 +4,41 @@ require "multi_json"
 require "syslog_logger"
 require "thread"
 
-module Termite
+module Ecology
   class << self
     attr_accessor :application
     attr_accessor :mutex
   end
 
-  PERSONIFEST_EXTENSION = ".personifest"
+  ECOLOGY_EXTENSION = ".ecology"
 
-  Termite.mutex = Mutex.new
+  Ecology.mutex = Mutex.new
 
   # Normally this is only for testing.
   def self.reset
-    Termite.application = nil
-    @termite_data = nil
-    @termite_initialized = nil
+    Ecology.application = nil
+    @ecology_data = nil
+    @ecology_initialized = nil
   end
 
-  def self.read_personifest
-    return if @termite_initialized
+  def self.read
+    return if @ecology_initialized
 
-    Termite.mutex.synchronize {
-      file_path = ENV['TERMITE_PERSONIFEST'] || default_personifest_name
+    Ecology.mutex.synchronize {
+      file_path = ENV['TERMITE_ECOLOGY'] || default_ecology_name
       contents = File.read(file_path)
-      @termite_data = MultiJson.decode(contents);
+      @ecology_data = MultiJson.decode(contents);
 
-      Termite.application = @termite_data["application"]
+      Ecology.application = @ecology_data["application"]
     }
 
-    @termite_initialized = true
+    @ecology_initialized = true
   end
 
-  def self.default_personifest_name(executable = $0)
+  def self.default_ecology_name(executable = $0)
     suffix = File.extname(executable)
     executable[0..(executable.length - 1 - suffix.size)] +
-      PERSONIFEST_EXTENSION
+      ECOLOGY_EXTENSION
   end
 
   # This is a convenience function because the Ruby
@@ -54,12 +54,14 @@ module Termite
     return nil unless match
     match[1]
   end
+end
 
+module Termite
   class Logger < SyslogLogger
     def initialize
-      Termite.read_personifest
+      Ecology.read
 
-      super(Termite.application)
+      super(Ecology.application)
 
       # SyslogLogger gets this wrong for inheritance, and
       # winds up setting Termite::Logger::SYSLOG but not
@@ -76,7 +78,7 @@ module Termite
         data = MultiJson.encode(data)
       end
 
-      tid = Termite.thread_id(Thread.current)
+      tid = Ecology.thread_id(Thread.current)
 
       sl_message = "[#{tid}]: #{message} #{data}"
 
