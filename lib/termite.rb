@@ -96,7 +96,7 @@ module Termite
       eval <<-EOM, nil, __FILE__, __LINE__ + 1
         def #{meth}(message = nil, &block)
           return true if #{LOGGER_LEVEL_MAP[meth]} < @level
-          add(:#{meth}, message, &block)
+          add(::Logger::#{meth.to_s.upcase}, message, &block)
         end
 
         def #{meth}?
@@ -123,7 +123,9 @@ module Termite
       @file_logger = ::Logger.new(logdev, shift_age, shift_size) if logdev
 
       return if defined? SYSLOG
-      Termite::Logger.const_set :SYSLOG, Syslog.open(Ecology.application)
+      log_object = Syslog.open(Ecology.application, Syslog::LOG_PID | Syslog::LOG_CONS,
+                               Syslog::LOG_LOCAL7)
+      Termite::Logger.const_set :SYSLOG, log_object
     end
 
     def add(severity, message = nil, data = nil, options = {}, &block)
