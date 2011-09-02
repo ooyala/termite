@@ -4,7 +4,6 @@
 #include <log4cxx/patternlayout.h>
 #include <log4cxx/net/syslogappender.h>
 #include <log4cxx/rollingfileappender.h>
-#include <json_spirit.h>
 
 using namespace log4cxx;
 using namespace log4cxx::helpers;
@@ -69,11 +68,19 @@ namespace termite {
   }
 
   void Termite::RebuildPropertyCache() {
-    json_spirit::Object json;
+    string str(" {");
+    bool first=true;
     for (Properties::iterator p = properties_.begin(); p != properties_.end(); ++p) {
-      json.push_back(json_spirit::Pair(p->first, p->second));
+        if (first) {
+            first = false;
+        }
+        else {
+            str += ",";
+        }
+        str += "\"" + p->first + "\":\"" + p->second + "\"";
     }
-    cachedPropStr_ = " " + json_spirit::write(json);
+    str += "}";
+    cachedPropStr_ = str;
     isCacheCurrent_ = true;
   }
 
