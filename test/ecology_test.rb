@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 require "thread"
 
-class TermiteTest < Scope::TestCase
+class EcologyTest < Scope::TestCase
   context "with ecology" do
     should "correctly determine default ecology names" do
       assert_equal "/path/to/bob.txt.ecology", Ecology.default_ecology_name("/path/to/bob.txt.rb")
