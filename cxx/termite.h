@@ -47,14 +47,13 @@ namespace termite {
     void ClearProperty(string key);
     void ResetProperties();
 
+    // Get a Termite which logs only to syslog
     static Termite* GetTermite(string name);
+
+    static Termite* GetTermite(string name, const char *filePath, bool enableSyslog);
 
     void ForceLog(log4cxx::LevelPtr level, string message);
 
-    // Pass NULL to disable file logging
-    // void SetFileDestination(string path);
-    
-    
     bool IsTraceEnabled();
     bool IsDebugEnabled();
     bool IsInfoEnabled();
@@ -63,9 +62,9 @@ namespace termite {
     bool IsFatalEnabled();
 
    private:
-    Termite(string name);
+    Termite(string name, const char *filePath, bool enableSyslog);
     void RebuildPropertyCache();
-    void configureLogger();
+    void configureLogger(const char *filePath, bool enableSyslog);
 
     log4cxx::Logger* logger_;
     typedef map<string, string> Properties;

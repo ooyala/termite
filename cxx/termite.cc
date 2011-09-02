@@ -3,6 +3,7 @@
 #include <log4cxx/propertyconfigurator.h>
 #include <log4cxx/patternlayout.h>
 #include <log4cxx/net/syslogappender.h>
+#include <log4cxx/rollingfileappender.h>
 #include <json_spirit.h>
 
 using namespace log4cxx;
@@ -15,10 +16,9 @@ namespace termite {
   map<string, Termite*> Termite::termites_;
   boost::mutex Termite::static_mutex_;
 
-
-  Termite::Termite(string name) {
+  Termite::Termite(string name, const char *filePath, bool enableSyslog) {
     logger_ = Logger::getLogger(name);
-    configureLogger();
+    configureLogger(filePath, enableSyslog);
     Properties properties_;
     boost::mutex inst_mutex_;
     isCacheCurrent_ = true;
@@ -45,11 +45,15 @@ namespace termite {
   }
 
   Termite* Termite::GetTermite(string name) {
+      return Termite::GetTermite(name, NULL, true);
+  }
+
+  Termite* Termite::GetTermite(string name, const char *filePath, bool enableSyslog) {
     boost::mutex::scoped_lock mylock(static_mutex_);
 
     Termite* termite = termites_[name.c_str()];
     if (termite == NULL) {
-      termite = new Termite(name);
+      termite = new Termite(name, filePath, enableSyslog);
       termites_[name.c_str()] = termite;
     }
     return termite;
@@ -73,11 +77,20 @@ namespace termite {
     isCacheCurrent_ = true;
   }
 
+
   // Configure log4cxx
-  void Termite::configureLogger() {
+  void Termite::configureLogger(const char *filePath, bool enableSyslog) {
     PatternLayout *layout = new PatternLayout("%c [%t]: %m%n");
-    SyslogAppender *appender = new SyslogAppender(layout, "127.0.0.1", LOG_LOCAL7);
-    BasicConfigurator::configure(appender);
+    if (filePath != NULL) {
+        RollingFileAppender *appender = new RollingFileAppender(layout, filePath, true);
+        appender->setOption("MaxFileSize","100");
+        appender->setOption("MaxBackupIndex","20");
+        BasicConfigurator::configure(appender);
+    }
+    if (enableSyslog) {
+        SyslogAppender *appender = new SyslogAppender(layout, "127.0.0.1", LOG_LOCAL6);
+        BasicConfigurator::configure(appender);
+    }
   }
 
   bool Termite::IsTraceEnabled() { return logger_->isTraceEnabled(); }
