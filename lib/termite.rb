@@ -70,7 +70,7 @@ module Termite
       :unknown => :alert,
       :fatal   => :crit,
       :error   => :err,
-      :warn    => :warning,
+      :warn    => :warn,
       :info    => :info,
       :debug   => :debug,
     }
@@ -98,9 +98,9 @@ module Termite
 
     def self.make_methods(meth)
       eval <<-EOM, nil, __FILE__, __LINE__ + 1
-        def #{meth}(message = nil, &block)
+        def #{meth}(message = nil, data = {}, options = {}, &block)
           return true if #{LOGGER_LEVEL_MAP[meth]} < @level
-          add(::Logger::#{meth.to_s.upcase}, message, &block)
+          add(::Logger::#{meth.to_s.upcase}, message, data, options, &block)
         end
 
         def #{meth}?

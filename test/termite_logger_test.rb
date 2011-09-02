@@ -27,6 +27,16 @@ ECOLOGY_TEXT
         Termite::Logger::SYSLOG.expects(:crit).with("[main]: foo! {}")
         @logger.add(Logger::FATAL, "foo!", {})
       end
+
+      should "correctly send an alert to Syslog" do
+        Termite::Logger::SYSLOG.expects(:alert).with("[main]: foo! {}")
+        @logger.add(Logger::UNKNOWN, "foo!", {})
+      end
+
+      should "correctly send a critical event to Syslog" do
+        Termite::Logger::SYSLOG.expects(:crit).with("[main]: foo! {}")
+        @logger.fatal("foo!")
+      end
     end
   end
 end
