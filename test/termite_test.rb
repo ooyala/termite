@@ -10,9 +10,10 @@ class TermiteTest < Scope::TestCase
       assert_equal "\\path\\to\\bob.ecology", Ecology.default_ecology_name("\\path\\to\\bob.EXE")
     end
 
-    should "respect the TERMITE_ECOLOGY environment variable" do
+    should "respect the ECOLOGY_SPEC environment variable" do
       Ecology.reset
-      ENV['TERMITE_ECOLOGY'] = '/tmp/bobo.txt'
+      ENV['ECOLOGY_SPEC'] = '/tmp/bobo.txt'
+      File.expects(:exist?).with('/tmp/bobo.txt').returns(true)
       File.expects(:read).with('/tmp/bobo.txt').returns('{ "application": "foo_app" }')
       Ecology.read
 

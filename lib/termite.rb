@@ -22,15 +22,19 @@ module Ecology
     @ecology_initialized = nil
   end
 
-  def self.read
+  def self.read(ecology_pathname = nil)
     return if @ecology_initialized
 
     Ecology.mutex.synchronize {
-      file_path = ENV['TERMITE_ECOLOGY'] || default_ecology_name
-      contents = File.read(file_path)
-      @ecology_data = MultiJson.decode(contents);
+      file_path = ENV['ECOLOGY_SPEC'] || ecology_pathname || default_ecology_name
+      if File.exist?(file_path)
+        contents = File.read(file_path)
+        @ecology_data = MultiJson.decode(contents);
 
-      Ecology.application = @ecology_data["application"]
+        Ecology.application = @ecology_data["application"] || File.basename($0)
+      else
+        Ecology.application = File.basename($0)
+      end
     }
 
     @ecology_initialized = true
@@ -64,9 +68,9 @@ module Termite
 
     LOGGER_MAP = {
       :unknown => :alert,
-      :fatal   => :err,
-      :error   => :warning,
-      :warn    => :notice,
+      :fatal   => :crit,
+      :error   => :err,
+      :warn    => :warning,
       :info    => :info,
       :debug   => :debug,
     }
@@ -124,7 +128,7 @@ module Termite
 
       return if defined? SYSLOG
       log_object = Syslog.open(Ecology.application, Syslog::LOG_PID | Syslog::LOG_CONS,
-                               Syslog::LOG_LOCAL7)
+                               Syslog::LOG_LOCAL6)
       Termite::Logger.const_set :SYSLOG, log_object
     end
 

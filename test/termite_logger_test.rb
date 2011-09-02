@@ -13,7 +13,8 @@ ECOLOGY_TEXT
 
       # I'm not using the default ecology because tests have to
       # be runnable with a test runner, so $0 can be, like, anything.
-      ENV['TERMITE_ECOLOGY'] = "/tmp/bob.ecology"
+      ENV['ECOLOGY_SPEC'] = "/tmp/bob.ecology"
+      File.expects(:exist?).with("/tmp/bob.ecology").returns(true)
       File.expects(:read).with("/tmp/bob.ecology").returns(ecology_text)
     end
 
@@ -23,7 +24,7 @@ ECOLOGY_TEXT
       end
 
       should "correctly send logs to Syslog" do
-        Termite::Logger::SYSLOG.expects(:err).with("[main]: foo! {}")
+        Termite::Logger::SYSLOG.expects(:crit).with("[main]: foo! {}")
         @logger.add(Logger::FATAL, "foo!", {})
       end
     end
