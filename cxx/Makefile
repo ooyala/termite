@@ -1,7 +1,7 @@
 CXX=g++
 LOG4CXX=$(OOYALA_CODE_ROOT)/vendor/log4cxx/current
 CXXFLAGS=-I/usr/include -I$(LOG4CXX)/src/main/include -O3
-LDFLAGS=-llog4cxx -ltermite -L. -L$(LOG4CXX)/src/main/cpp
+LDFLAGS=-llog4cxx -ltermite -lboost_thread -L. -L$(LOG4CXX)/src/main/cpp
 
 UNAME := $(shell uname)
 
@@ -13,7 +13,7 @@ endif
 all: termite.a
 
 example: termite_example.cc log4cxx termite.a
-	$(CXX) $(CXXFLAGS) $(MACHINE_CXXFLAGS) $(LDFLAGS) $(MACHINE_LDFLAGS) -o termite_example termite_example.cc
+	$(CXX) $(CXXFLAGS) $(MACHINE_CXXFLAGS) -o termite_example termite_example.cc $(LDFLAGS) $(MACHINE_LDFLAGS)
 
 termite.a: termite.o
 	ar rc libtermite.a termite.o
