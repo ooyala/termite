@@ -1,26 +1,27 @@
 CXX=g++
 LOG4CXX=$(OOYALA_CODE_ROOT)/vendor/log4cxx/current
-CXXFLAGS=-I/usr/include -I$(LOG4CXX)/src/main/include -O3
-LDFLAGS=-llog4cxx -ltermite -lboost_thread -L. -L$(LOG4CXX)/src/main/cpp
 
 UNAME := $(shell uname)
 
 ifeq ($(UNAME),Darwin)
-MACHINE_CXXFLAGS=-I/opt/local/include
-MACHINE_LDFLAGS=-L/opt/local/lib
+CXXFLAGS=-I/usr/include -I$(LOG4CXX)/src/main/include -I/opt/local/include -O3
+LDFLAGS=-llog4cxx -ltermite -L. -L$(LOG4CXX)/src/main/cpp -L/opt/local/lib
+else
+CXXFLAGS=-I/usr/include -I$(LOG4CXX)/src/main/include -O3
+LDFLAGS=-llog4cxx -ltermite -lboost_thread -L. -L$(LOG4CXX)/src/main/cpp -L/opt/local/lib
 endif
 
 all: termite.a
 
 example: termite_example.cc log4cxx termite.a
-	$(CXX) $(CXXFLAGS) $(MACHINE_CXXFLAGS) -o termite_example termite_example.cc $(LDFLAGS) $(MACHINE_LDFLAGS)
+	$(CXX) $(CXXFLAGS) -o termite_example termite_example.cc $(LDFLAGS)
 
 termite.a: termite.o
 	ar rc libtermite.a termite.o
 	ranlib libtermite.a
 
 termite.o: termite.cc termite.h
-	$(CXX) $(CXXFLAGS) $(MACHINE_CXXFLAGS) -c termite.cc
+	$(CXX) $(CXXFLAGS) -c termite.cc
 
 log4cxx: $(LOG4CXX)/src/main/cpp/.libs/liblog4cxx.a
 
