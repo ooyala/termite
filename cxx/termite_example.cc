@@ -4,7 +4,7 @@ using namespace termite;
 int main(int argc, char **argv)
 {
   string app("MyApp");
-  Termite* logger = Termite::GetTermite(app, "termite_example.log", true);
+  Termite* logger = Termite::GetTermite(app, "termite_example.log", true, true);
   logger->SetProperty("mykey", "my value");
   logger->SetProperty("mykey2", "my value2");
 
@@ -16,3 +16,4 @@ int main(int argc, char **argv)
 
   return EXIT_SUCCESS;
 }
+

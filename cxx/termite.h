@@ -50,7 +50,7 @@ namespace termite {
     // Get a Termite which logs only to syslog
     static Termite* GetTermite(string name);
 
-    static Termite* GetTermite(string name, const char *filePath, bool enableSyslog);
+    static Termite* GetTermite(string name, const char *filePath, bool enableSyslog, bool enableConsole);
 
     void ForceLog(log4cxx::LevelPtr level, string message);
 
@@ -62,9 +62,9 @@ namespace termite {
     bool IsFatalEnabled();
 
    private:
-    Termite(string name, const char *filePath, bool enableSyslog);
+    Termite(string name, const char *filePath, bool enableSyslog, bool enableConsole);
     void RebuildPropertyCache();
-    void configureLogger(const char *filePath, bool enableSyslog);
+    void ConfigureLogger(const char *filePath, bool enableSyslog, bool enableConsole);
 
     log4cxx::Logger* logger_;
     typedef map<string, string> Properties;
@@ -79,3 +79,4 @@ namespace termite {
 }
 
 #endif
+

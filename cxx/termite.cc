@@ -4,6 +4,7 @@
 #include <log4cxx/patternlayout.h>
 #include <log4cxx/net/syslogappender.h>
 #include <log4cxx/rollingfileappender.h>
+#include <log4cxx/consoleappender.h>
 
 using namespace log4cxx;
 using namespace log4cxx::helpers;
@@ -15,9 +16,9 @@ namespace termite {
   map<string, Termite*> Termite::termites_;
   boost::mutex Termite::static_mutex_;
 
-  Termite::Termite(string name, const char *filePath, bool enableSyslog) {
+  Termite::Termite(string name, const char *filePath, bool enableSyslog, bool enableConsole) {
     logger_ = Logger::getLogger(name);
-    configureLogger(filePath, enableSyslog);
+    ConfigureLogger(filePath, enableSyslog, enableConsole);
     Properties properties_;
     boost::mutex inst_mutex_;
     isCacheCurrent_ = true;
@@ -44,15 +45,15 @@ namespace termite {
   }
 
   Termite* Termite::GetTermite(string name) {
-      return Termite::GetTermite(name, NULL, true);
+      return Termite::GetTermite(name, NULL, true, true);
   }
 
-  Termite* Termite::GetTermite(string name, const char *filePath, bool enableSyslog) {
+  Termite* Termite::GetTermite(string name, const char *filePath, bool enableSyslog, bool enableConsole) {
     boost::mutex::scoped_lock mylock(static_mutex_);
 
     Termite* termite = termites_[name.c_str()];
     if (termite == NULL) {
-      termite = new Termite(name, filePath, enableSyslog);
+      termite = new Termite(name, filePath, enableSyslog, enableConsole);
       termites_[name.c_str()] = termite;
     }
     return termite;
@@ -86,7 +87,7 @@ namespace termite {
 
 
   // Configure log4cxx
-  void Termite::configureLogger(const char *filePath, bool enableSyslog) {
+  void Termite::ConfigureLogger(const char *filePath, bool enableSyslog, bool enableConsole) {
     if (filePath != NULL) {
         PatternLayout *layout = new PatternLayout("%d %-5p %c [%t]: %m%n");
         RollingFileAppender *appender = new RollingFileAppender(layout, filePath, true);
@@ -99,6 +100,11 @@ namespace termite {
         SyslogAppender *appender = new SyslogAppender(layout, "127.0.0.1", LOG_LOCAL6);
         BasicConfigurator::configure(appender);
     }
+    if (enableConsole) {
+        PatternLayout *layout = new PatternLayout("%-5p %c [%t]: %m%n");
+        ConsoleAppender *appender = new ConsoleAppender(layout, "System.err");
+        BasicConfigurator::configure(appender);
+    }
   }
 
   bool Termite::IsTraceEnabled() { return logger_->isTraceEnabled(); }
@@ -109,3 +115,4 @@ namespace termite {
   bool Termite::IsFatalEnabled() { return logger_->isFatalEnabled(); }
 
 }
+

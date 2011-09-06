@@ -11,7 +11,7 @@ CXXFLAGS=-I/usr/include -I$(LOG4CXX)/src/main/include -O3
 LDFLAGS=-llog4cxx -ltermite -lboost_thread -L. -L$(LOG4CXX)/src/main/cpp -L/opt/local/lib
 endif
 
-all: termite.a
+all: libtermite.a
 
 test: termite_test
 	./termite_test
@@ -41,5 +41,4 @@ $(LOG4CXX)/src/main/cpp/liblog4cxx.la:
 
 clean:
 	rm -f termite.o libtermite.a termite_example.o termite termite_example termite_test termite_test.log termite_example.log
-
 

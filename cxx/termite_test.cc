@@ -39,7 +39,7 @@ FATAL MyApp []: Fatal {}\n", ReadAndNormalizeLog("termite_test.log"));
 int main(int argc, char **argv)
 {
     remove("termite_test.log");
-    Termite* logger = Termite::GetTermite("MyApp", "termite_test.log", false);
+    Termite* logger = Termite::GetTermite("MyApp", "termite_test.log", false, false);
     logger->SetProperty("mykey", "my value");
     logger->SetProperty("mykey2", "my value2");
 
@@ -54,3 +54,4 @@ int main(int argc, char **argv)
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+
