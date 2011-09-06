@@ -18,27 +18,39 @@ using namespace std;
 
 #define TERMITE_TRACE(logger, message) {\
 if (logger->IsTraceEnabled()) {\
-   logger->ForceLog(::log4cxx::Level::getTrace(), message); }}
+   std::ostringstream stream;\
+   stream << message;\
+   logger->ForceLog(::log4cxx::Level::getTrace(), stream.str()); }}
 
 #define TERMITE_DEBUG(logger, message) {\
 if (logger->IsDebugEnabled()) {\
-   logger->ForceLog(::log4cxx::Level::getDebug(), message); }}
+   std::ostringstream stream;\
+   stream << message;\
+   logger->ForceLog(::log4cxx::Level::getDebug(), stream.str()); }}
 
 #define TERMITE_INFO(logger, message) {\
 if (logger->IsInfoEnabled()) {\
-   logger->ForceLog(::log4cxx::Level::getInfo(), message); }}
+   std::ostringstream stream;\
+   stream << message;\
+   logger->ForceLog(::log4cxx::Level::getInfo(), stream.str()); }}
 
 #define TERMITE_WARN(logger, message) {\
 if (logger->IsWarnEnabled()) {\
-   logger->ForceLog(::log4cxx::Level::getWarn(), message); }}
+   std::ostringstream stream;\
+   stream << message;\
+   logger->ForceLog(::log4cxx::Level::getWarn(), stream.str()); }}
 
 #define TERMITE_ERROR(logger, message) {\
 if (logger->IsErrorEnabled()) {\
-   logger->ForceLog(::log4cxx::Level::getError(), message); }}
+   std::ostringstream stream;\
+   stream << message;\
+   logger->ForceLog(::log4cxx::Level::getError(), stream.str()); }}
 
 #define TERMITE_FATAL(logger, message) {\
 if (logger->IsFatalEnabled()) {\
-   logger->ForceLog(::log4cxx::Level::getFatal(), message); }}
+   std::ostringstream stream;\
+   stream << message;\
+   logger->ForceLog(::log4cxx::Level::getFatal(), stream.str()); }}
 
 namespace termite {
   class Termite {
