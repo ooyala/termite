@@ -20,7 +20,7 @@ ECOLOGY_TEXT
 
     context "and fully permissive logging levels set" do
       setup do
-        @logger = Termite::Logger.new
+        @logger = Termite::Logger.new("/tmp/test_log_output.txt")  # Test with output file
         @logger.level = Logger::DEBUG
       end
 

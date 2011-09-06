@@ -76,7 +76,7 @@ module Termite
     }
 
     ##
-    # Maps Logger log levels to their values so we can silence.
+    # Maps Ruby Logger log levels to their values so we can silence.
 
     LOGGER_LEVEL_MAP = {}
 
@@ -85,7 +85,7 @@ module Termite
     end
 
     ##
-    # Maps Logger log level values to syslog log levels.
+    # Maps Logger numerical log level values to syslog log levels.
 
     LEVEL_LOGGER_MAP = {}
 
@@ -149,7 +149,7 @@ module Termite
       sl_message = "[#{tid}]: #{clean(message || block.call)} #{data}"
 
       SYSLOG.send LEVEL_LOGGER_MAP[severity], sl_message
-      @file_logger.send(LEVEL_LOGGER_MAP[severity], sl_message) if @file_logger
+      @file_logger.send(LOGGER_LEVEL_MAP.invert[severity], sl_message) if @file_logger
 
       true
     end
