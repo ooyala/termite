@@ -13,10 +13,18 @@ endif
 
 all: termite.a
 
-example: termite_example.cc log4cxx termite.a
+test: termite_test
+	./termite_test
+
+termite_test: termite_test.cc
+	$(CXX) $(CXXFLAGS) -o termite_test termite_test.cc $(LDFLAGS) -lgtest
+
+example: termite_example
+
+termite_example: termite_example.cc log4cxx libtermite.a
 	$(CXX) $(CXXFLAGS) -o termite_example termite_example.cc $(LDFLAGS)
 
-termite.a: termite.o
+libtermite.a: termite.o
 	ar rc libtermite.a termite.o
 	ranlib libtermite.a
 
@@ -32,6 +40,6 @@ $(LOG4CXX)/src/main/cpp/liblog4cxx.la:
 	popd
 
 clean:
-	rm -f termite.o libtermite.a termite_example.o termite termite_example
+	rm -f termite.o libtermite.a termite_example.o termite termite_example termite_test termite_test.log termite_example.log
 
 

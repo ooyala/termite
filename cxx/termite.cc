@@ -87,14 +87,15 @@ namespace termite {
 
   // Configure log4cxx
   void Termite::configureLogger(const char *filePath, bool enableSyslog) {
-    PatternLayout *layout = new PatternLayout("%c [%t]: %m%n");
     if (filePath != NULL) {
+        PatternLayout *layout = new PatternLayout("%d %-5p %c [%t]: %m%n");
         RollingFileAppender *appender = new RollingFileAppender(layout, filePath, true);
         appender->setOption("MaxFileSize","100");
         appender->setOption("MaxBackupIndex","20");
         BasicConfigurator::configure(appender);
     }
     if (enableSyslog) {
+        PatternLayout *layout = new PatternLayout("%-5p %c [%t]: %m%n");
         SyslogAppender *appender = new SyslogAppender(layout, "127.0.0.1", LOG_LOCAL6);
         BasicConfigurator::configure(appender);
     }
