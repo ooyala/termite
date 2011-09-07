@@ -16,7 +16,7 @@ all: libtermite.a
 test: termite_test
 	./termite_test
 
-termite_test: termite_test.cc
+termite_test: termite_test.cc log4cxx libtermite.a
 	$(CXX) $(CXXFLAGS) -o termite_test termite_test.cc $(LDFLAGS) -lgtest
 
 example: termite_example
@@ -40,4 +40,4 @@ $(LOG4CXX)/src/main/cpp/liblog4cxx.la:
 	popd
 
 clean:
-	rm -f termite.o libtermite.a termite_example.o termite termite_example termite_test termite_test.log termite_example.log
+	rm -f *.a *.o *.log termite termite_example termite_test

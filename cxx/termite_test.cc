@@ -29,18 +29,9 @@ string ReadAndNormalizeLog(const char *filename) {
   return result;
 }
 
-TEST(TermiteTest, All) {
-  EXPECT_EQ("DEBUG MyApp []: Debug {\"mykey\":\"my value\",\"mykey2\":\"my value2\"}\n\
-INFO  MyApp []: Info {\"mykey2\":\"my value2\"}\n\
-WARN  MyApp []: Warn {}\n\
-ERROR MyApp []: Error {}\n\
-FATAL MyApp []: Fatal {}\n",
-            ReadAndNormalizeLog("termite_test.log"));
-}
-
-int main(int argc, char **argv) {
-  remove("termite_test.log");
-  Termite* logger = Termite::GetTermite("MyApp", "termite_test.log", false, false);
+TEST(TermiteTest, Base) {
+  remove("termite_test_base.log");
+  Termite* logger = Termite::GetTermite("BaseTest", "termite_test_base.log", false, false);
   logger->SetProperty("mykey", "my value");
   logger->SetProperty("mykey2", "my value2");
 
@@ -52,6 +43,36 @@ int main(int argc, char **argv) {
   TERMITE_ERROR(logger, "Error");
   TERMITE_FATAL(logger, "Fatal");
 
+  EXPECT_EQ("DEBUG BaseTest []: Debug {\"mykey\":\"my value\",\"mykey2\":\"my value2\"}\n\
+INFO  BaseTest []: Info {\"mykey2\":\"my value2\"}\n\
+WARN  BaseTest []: Warn {}\n\
+ERROR BaseTest []: Error {}\n\
+FATAL BaseTest []: Fatal {}\n",
+            ReadAndNormalizeLog("termite_test_base.log"));
+}
+
+TEST(TermiteTest, Stream) {
+  remove("termite_test_stream.log");
+  Termite* logger = Termite::GetTermite("StreamTest", "termite_test_stream.log", false, false);
+  const char* test_chars = "Test chars";
+  int test_int = 42;
+  string test_string = "Test string";
+
+  TERMITE_DEBUG(logger, "Stream test: " << test_chars << test_int << test_string << ".");
+  TERMITE_INFO(logger, "Stream test: " << test_chars << test_int << test_string << ".");
+  TERMITE_WARN(logger, "Stream test: " << test_chars << test_int << test_string << ".");
+  TERMITE_ERROR(logger, "Stream test: " << test_chars << test_int << test_string << ".");
+  TERMITE_FATAL(logger, "Stream test: " << test_chars << test_int << test_string << ".");
+
+  EXPECT_EQ("DEBUG StreamTest []: Stream test: Test chars42Test string.\n\
+INFO  StreamTest []: Stream test: Test chars42Test string.\n\
+WARN  StreamTest []: Stream test: Test chars42Test string.\n\
+ERROR StreamTest []: Stream test: Test chars42Test string.\n\
+FATAL StreamTest []: Stream test: Test chars42Test string.\n",
+            ReadAndNormalizeLog("termite_test_stream.log"));
+}
+
+int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
