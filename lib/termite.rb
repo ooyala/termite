@@ -4,6 +4,7 @@ require "multi_json"
 require "thread"
 require "syslog"
 require "logger"
+require "socket"
 
 module Ecology
   class << self
@@ -64,13 +65,13 @@ end
 module Termite
   class Logger
     ##
-    # Maps Logger warning types to syslog(3) warning types.
+    # Maps Logger severities to syslog(3) severities.
 
     LOGGER_MAP = {
       :unknown => :alert,
       :fatal   => :crit,
       :error   => :err,
-      :warn    => :warn,
+      :warn    => :warning,
       :info    => :info,
       :debug   => :debug,
     }
@@ -91,6 +92,12 @@ module Termite
 
     LOGGER_LEVEL_MAP.invert.each do |level, severity|
       LEVEL_LOGGER_MAP[level] = LOGGER_MAP[severity]
+    end
+
+    SYSLOG_SEVERITY_MAP = {}
+
+    LOGGER_MAP.values.each do |syslog_severity|
+      SYSLOG_SEVERITY_MAP[syslog_severity] = ::Syslog.const_get("LOG_" + syslog_severity.to_s.upcase)
     end
 
     ##
@@ -117,27 +124,32 @@ module Termite
     # Log level for Logger compatibility.
 
     attr_accessor :level
-    attr_accessor :file_logger
+    attr_reader :file_logger
 
-    def initialize(logdev = nil, shift_age = 0, shift_size = 1048576)
+    def initialize(logdev = nil, shift_age = 0, shift_size = 1048576, options = {})
+      options = logdev if(logdev.is_a?(Hash))
+
       Ecology.read
 
+      @application = Ecology.application
       @level = ::Logger::DEBUG
 
-      @file_logger = ::Logger.new(logdev, shift_age, shift_size) if logdev
+      @extra_loggers = []
+      file_logger = ::Logger.new(logdev, shift_age, shift_size) if logdev
+      @extra_loggers << file_logger if logdev
 
-      return if defined? SYSLOG
-      log_object = Syslog.open(Ecology.application, Syslog::LOG_PID | Syslog::LOG_CONS,
-                               Syslog::LOG_LOCAL6)
-      Termite::Logger.const_set :SYSLOG, log_object
+      # For UDP socket
+      @server_addr = options[:address] || "0.0.0.0"
+      @server_port = options[:port] ? options[:port].to_i : 514
     end
 
     def add(severity, message = nil, data = nil, options = {}, &block)
       severity ||= ::Logger::UNKNOWN
       return true if severity < @level
 
-      if options[:rate]
-        # TODO(noah) do the sampling here and just exit with some % chance?
+      application = @application
+      if options[:component]
+        application += ":" + options[:component]
       end
 
       if data.is_a?(Hash)
@@ -145,11 +157,20 @@ module Termite
       end
 
       tid = Ecology.thread_id(Thread.current)
+      time = Time.now
+      day = time.strftime("%b %d").sub(/0(\d)/, ' \\1')
+      time_of_day = time.strftime("%T")
+      hostname = Socket.gethostname
+      tag = Syslog::LOG_LOCAL6 + SYSLOG_SEVERITY_MAP[LEVEL_LOGGER_MAP[severity]]
 
-      sl_message = "[#{tid}]: #{clean(message || block.call)} #{data}"
+      syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: "
+      syslog_string += "[#{tid}] #{clean(message || block.call)} #{data}"
+      UDPSocket.send(syslog_string, 0, @server_addr, @server_port)
 
-      SYSLOG.send LEVEL_LOGGER_MAP[severity], sl_message
-      @file_logger.send(LOGGER_LEVEL_MAP.invert[severity], sl_message) if @file_logger
+      ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
+      @extra_loggers.each do |logger|
+        logger.send(ruby_severity, syslog_string)
+      end
 
       true
     end

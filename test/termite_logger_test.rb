@@ -1,6 +1,12 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
+require "syslog"
 
 class TermiteLoggerTest < Scope::TestCase
+  def expect_add(severity_num, message)
+    string = "<#{Syslog::LOG_LOCAL6 + severity_num}>Sep  7 15:09:20 samplehost foo_app [1234]: [main] #{message}"
+    UDPSocket.expects(:send).with(string, 0, "0.0.0.0", 514)
+  end
+
   context "with termite ecology" do
     setup do
       Ecology.reset
@@ -16,6 +22,11 @@ ECOLOGY_TEXT
       ENV['ECOLOGY_SPEC'] = "/tmp/bob.ecology"
       File.expects(:exist?).with("/tmp/bob.ecology").returns(true)
       File.expects(:read).with("/tmp/bob.ecology").returns(ecology_text)
+
+      Time.stubs(:now).returns(Time.at(1315433360))
+      Socket.stubs(:gethostname).returns("samplehost")
+      Process.stubs(:pid).returns("1234")
+      Ecology.stubs(:thread_id).returns("main")
     end
 
     context "and fully permissive logging levels set" do
@@ -25,37 +36,37 @@ ECOLOGY_TEXT
       end
 
       should "correctly send logs to Syslog" do
-        Termite::Logger::SYSLOG.expects(:crit).with("[main]: foo! {}")
+        expect_add(2, "foo! {}")
         @logger.add(Logger::FATAL, "foo!", {})
       end
 
       should "correctly send an alert to Syslog" do
-        Termite::Logger::SYSLOG.expects(:alert).with("[main]: foo! {}")
+        expect_add(1, "foo! {}")
         @logger.add(Logger::UNKNOWN, "foo!", {})
       end
 
       should "correctly send a critical event to Syslog" do
-        Termite::Logger::SYSLOG.expects(:crit).with("[main]: foo! {}")
+        expect_add(2, "foo! {}")
         @logger.fatal("foo!")
       end
 
       should "correctly send an error event to Syslog" do
-        Termite::Logger::SYSLOG.expects(:err).with("[main]: foo! {}")
+        expect_add(3, "foo! {}")
         @logger.error("foo!")
       end
 
       should "correctly send a warning event to Syslog" do
-        Termite::Logger::SYSLOG.expects(:warn).with("[main]: foo! {}")
+        expect_add(4, "foo! {}")
         @logger.warn("foo!")
       end
 
       should "correctly send an info event to Syslog" do
-        Termite::Logger::SYSLOG.expects(:info).with("[main]: foo! {}")
+        expect_add(6, "foo! {}")
         @logger.info("foo!")
       end
 
       should "correctly send a debug event to Syslog" do
-        Termite::Logger::SYSLOG.expects(:debug).with("[main]: foo! {}")
+        expect_add(7, "foo! {}")
         @logger.debug("foo!")
       end
     end

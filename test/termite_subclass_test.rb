@@ -27,7 +27,7 @@ ECOLOGY_TEXT
       end
 
       should "correctly send logs to Syslog" do
-        Termite::Logger::SYSLOG.expects(:crit).with("[main]: foo! {}")
+        UDPSocket.expects(:send)
         @logger.add(Logger::FATAL, "foo!", {})
       end
     end
