@@ -143,11 +143,15 @@ module Termite
       @server_port = options[:port] ? options[:port].to_i : 514
     end
 
+    def add_logger(logger)
+      @extra_loggers << logger
+    end
+
     def add(severity, message = nil, data = nil, options = {}, &block)
       severity ||= ::Logger::UNKNOWN
       return true if severity < @level
 
-      application = @application
+      application = options[:application] || @application
       if options[:component]
         application += ":" + options[:component]
       end

@@ -2,8 +2,9 @@ require File.join(File.dirname(__FILE__), "test_helper.rb")
 require "syslog"
 
 class TermiteLoggerTest < Scope::TestCase
-  def expect_add(severity_num, message)
-    string = "<#{Syslog::LOG_LOCAL6 + severity_num}>Sep  7 15:09:20 samplehost foo_app [1234]: [main] #{message}"
+  def expect_add(severity_num, message, options = {})
+    app = options[:application] || "foo_app"
+    string = "<#{Syslog::LOG_LOCAL6 + severity_num}>Sep  7 15:09:20 samplehost #{app} [1234]: [main] #{message}"
     UDPSocket.expects(:send).with(string, 0, "0.0.0.0", 514)
   end
 
@@ -70,5 +71,22 @@ ECOLOGY_TEXT
         @logger.debug("foo!")
       end
     end
+
+    context "and default setup for components" do
+      setup do
+        @logger = Termite::Logger.new("/tmp/test_log_output.txt")  # Test with output file
+      end
+
+      should "allow overriding application name" do
+        expect_add(2, "foo! {}", :application => "bar_app")
+        @logger.fatal("foo!", {}, :application => "bar_app")
+      end
+
+      should "allow setting a component" do
+        expect_add(2, "foo! {}", :application => "foo_app:whatcomponent")
+        @logger.fatal("foo!", {}, :component => "whatcomponent")
+      end
+    end
+
   end
 end
