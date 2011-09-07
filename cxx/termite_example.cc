@@ -1,8 +1,12 @@
-#include "termite.h"
-using namespace termite;
+// Copyright 2011 Ooyala, Inc. All Rights Reserved.
+//
+// Example usage of Termite logging utility.
 
-int main(int argc, char **argv)
-{
+#include "termite.h"
+
+using termite::Termite;
+
+int main(int argc, char **argv) {
   string app("MyApp");
   Termite* logger = Termite::GetTermite(app, "termite_example.log", true, true);
   logger->SetProperty("mykey", "my value");
@@ -16,4 +20,3 @@ int main(int argc, char **argv)
 
   return EXIT_SUCCESS;
 }
-

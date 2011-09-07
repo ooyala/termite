@@ -41,4 +41,3 @@ $(LOG4CXX)/src/main/cpp/liblog4cxx.la:
 
 clean:
 	rm -f termite.o libtermite.a termite_example.o termite termite_example termite_test termite_test.log termite_example.log
-
