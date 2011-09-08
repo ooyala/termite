@@ -9,11 +9,9 @@ class TermiteExtraLoggerTest < Scope::TestCase
 
     context "and two extra loggers added" do
       setup do
-        socket = mock("UDP socket")
-        UDPSocket.stubs(:new).returns(socket)
-        socket.expects(:send)
         @logger = Termite::Logger.new("/tmp/test_log_output.txt")  # Test with output file
         @logger.level = Logger::DEBUG
+        @logger.socket.expects(:send)
         @mock_logger_1 = mock()
         @logger.add_logger(@mock_logger_1)
         @logger.add_logger(@mock_logger_2)

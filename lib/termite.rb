@@ -142,16 +142,18 @@ module Termite
       @server_addr = options[:address] || "0.0.0.0"
       @server_port = options[:port] ? options[:port].to_i : 514
 
-      #@@sockets ||= {}
-      #key = "#{@server_addr}:#{@server_port}"
-      #@@sockets[key] ||= UDPSocket.new
-      #@socket = @@sockets[key]
-
-      @socket = UDPSocket.new
+      @@sockets ||= {}
+      key = "#{@server_addr}:#{@server_port}"
+      @@sockets[key] ||= UDPSocket.new
+      @socket = @@sockets[key]
     end
 
     def add_logger(logger)
       @extra_loggers << logger
+    end
+
+    def socket
+      @socket
     end
 
     def add(severity, message = nil, data = nil, options = {}, &block)
