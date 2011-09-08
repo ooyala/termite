@@ -72,6 +72,19 @@ FATAL StreamTest []: Stream test: Test chars42Test string.\n",
             ReadAndNormalizeLog("termite_test_stream.log"));
 }
 
+TEST(TermiteTest, MultipleLoggers) {
+  remove("termite_test_multiple1.log");
+  remove("termite_test_multiple2.log");
+  Termite* logger1 = Termite::GetTermite("Multiple1", "termite_test_multiple1.log", false, false);
+  Termite* logger2 = Termite::GetTermite("Multiple2", "termite_test_multiple2.log", false, false);
+  
+  TERMITE_DEBUG(logger1, "Debug log 1");
+  TERMITE_INFO(logger2, "Info log 2");
+  
+  EXPECT_EQ("DEBUG Multiple1 []: Debug log 1\n", ReadAndNormalizeLog("termite_test_multiple1.log"));
+  EXPECT_EQ("INFO  Multiple2 []: Info log 2\n", ReadAndNormalizeLog("termite_test_multiple2.log"));
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -98,17 +98,17 @@ void Termite::ConfigureLogger(const char* file_path, bool enable_syslog, bool en
     RollingFileAppender* appender = new RollingFileAppender(layout, file_path, true);
     appender->setOption("MaxFileSize", "100");
     appender->setOption("MaxBackupIndex", "20");
-    BasicConfigurator::configure(appender);
+    logger_->addAppender(appender);
   }
   if (enable_syslog) {
     PatternLayout* layout = new PatternLayout("%-5p %c [%t]: %m%n");
     SyslogAppender* appender = new SyslogAppender(layout, "127.0.0.1", LOG_LOCAL6);
-    BasicConfigurator::configure(appender);
+    logger_->addAppender(appender);
   }
   if (enable_console) {
     PatternLayout* layout = new PatternLayout("%-5p %c [%t]: %m%n");
     ConsoleAppender* appender = new ConsoleAppender(layout, "System.err");
-    BasicConfigurator::configure(appender);
+    logger_->addAppender(appender);
   }
 }
 
