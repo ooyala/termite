@@ -188,6 +188,8 @@ module Termite
       true
     end
 
+    alias :log :add
+
     ##
     # Allows messages of a particular log level to be ignored temporarily.
     #
@@ -209,7 +211,6 @@ module Termite
     def clean(message)
       message = message.to_s.dup
       message.strip!
-      message.gsub!(/%/, '%%') # syslog(3) freaks on % (printf)
       message.gsub!(/\e\[[^m]*m/, '') # remove useless ansi color codes
       return message
     end

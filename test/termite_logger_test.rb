@@ -41,6 +41,11 @@ ECOLOGY_TEXT
         @logger.add(Logger::FATAL, "foo!", {})
       end
 
+      should "correctly alias log to add" do
+        expect_add(@logger.socket, 2, "foo! {}")
+        @logger.log(Logger::FATAL, "foo!", {})
+      end
+
       should "correctly send an alert to Syslog" do
         expect_add(@logger.socket, 1, "foo! {}")
         @logger.add(Logger::UNKNOWN, "foo!", {})
