@@ -9,6 +9,9 @@ class TermiteExtraLoggerTest < Scope::TestCase
 
     context "and two extra loggers added" do
       setup do
+        socket = mock("UDP socket")
+        UDPSocket.stubs(:new).returns(socket)
+        socket.expects(:send)
         @logger = Termite::Logger.new("/tmp/test_log_output.txt")  # Test with output file
         @logger.level = Logger::DEBUG
         @mock_logger_1 = mock()
@@ -17,7 +20,6 @@ class TermiteExtraLoggerTest < Scope::TestCase
       end
 
       should "correctly send logs to Syslog" do
-        UDPSocket.expects(:send)
         @mock_logger_1.expects(:fatal)
         @mock_logger_2.expects(:fatal)
         @logger.add(Logger::FATAL, "foo!", {})

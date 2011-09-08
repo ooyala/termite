@@ -141,6 +141,13 @@ module Termite
       # For UDP socket
       @server_addr = options[:address] || "0.0.0.0"
       @server_port = options[:port] ? options[:port].to_i : 514
+
+      #@@sockets ||= {}
+      #key = "#{@server_addr}:#{@server_port}"
+      #@@sockets[key] ||= UDPSocket.new
+      #@socket = @@sockets[key]
+
+      @socket = UDPSocket.new
     end
 
     def add_logger(logger)
@@ -169,7 +176,7 @@ module Termite
 
       syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: "
       syslog_string += "[#{tid}] #{clean(message || block.call)} #{data}"
-      UDPSocket.send(syslog_string, 0, @server_addr, @server_port)
+      @socket.send(syslog_string, 0, @server_addr, @server_port)
 
       ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
       @extra_loggers.each do |logger|

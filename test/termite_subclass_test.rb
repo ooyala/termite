@@ -23,11 +23,13 @@ ECOLOGY_TEXT
 
     context "and only default logging levels set" do
       setup do
+        @socket = mock("UDP socket")
+        UDPSocket.expects(:new).returns(@socket)
         @logger = SubLogger.new
       end
 
       should "correctly send logs to Syslog" do
-        UDPSocket.expects(:send)
+        @socket.expects(:send)
         @logger.add(Logger::FATAL, "foo!", {})
       end
     end
