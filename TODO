@@ -1,0 +1,10 @@
+Ecology configuration:
+  * Extra loggers from Ecology
+  * Log to path from Ecology
+  * Server address and port from Ecology
+  * Transport protocol from Ecology
+  * Debug level from Ecology
+
+Ecology facilities:
+  * Change any parameter(s) by environment
+  * Change parameter(s) by hostname/IP?
