@@ -30,7 +30,16 @@ module Ecology
         contents = File.read(file_path)
         @data = MultiJson.decode(contents);
 
-        @application = @data ? @data["application"] : nil
+        if @data
+          @application = @data["application"]
+
+          if @data["environment"]
+            @environment = @data["environment"]["override"]
+            if !@environment && @data["environment"]["vars"]
+              @environment ||= @data["environment"]["vars"].map {|v| ENV[v]}.compact.first
+            end
+          end
+        end
       end
       @application ||= File.basename($0)
       @environment ||= ENV['RAILS_ENV'] || ENV['RACK_ENV'] || "development"
