@@ -5,9 +5,7 @@ class EcologyLogTest < Scope::TestCase
     setup do
       Ecology.reset
 
-      ENV["ECOLOGY_SPEC"] = "/tmp/some.ecology"
-      File.expects(:exist?).with("/tmp/some.ecology").returns(true)
-      File.expects(:read).with("/tmp/some.ecology").returns(<<ECOLOGY_CONTENTS)
+      set_up_ecology <<ECOLOGY_CONTENTS
 {
   "application": "MyApp",
   "logging": {

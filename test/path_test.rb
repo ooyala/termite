@@ -1,13 +1,13 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class PathTest < Scope::TestCase
-  context "with a custom ecology" do
-    setup do
-      Ecology.reset
+  setup do
+    Ecology.reset
+  end
 
-      ENV["ECOLOGY_SPEC"] = "/tmp/some.ecology"
-      File.expects(:exist?).with("/tmp/some.ecology").returns(true)
-      File.expects(:read).with("/tmp/some.ecology").returns(<<ECOLOGY_CONTENTS)
+  context "with paths in your ecology" do
+    setup do
+      set_up_ecology <<ECOLOGY_CONTENTS
 {
   "application": "SomeApp",
   "paths": {
@@ -34,6 +34,6 @@ ECOLOGY_CONTENTS
       Dir.expects(:getwd).returns("some/path")
       assert_equal "some/path/logs", Ecology.path("whatsit_path")
     end
-
   end
+
 end
