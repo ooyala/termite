@@ -14,6 +14,7 @@ module Ecology
   def self.reset
     @application = nil
     @data = nil
+
     @ecology_initialized = nil
   end
 

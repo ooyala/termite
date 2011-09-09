@@ -77,12 +77,13 @@ module Termite
 
       Ecology.read
 
-      @application = Ecology.application
       @level = ::Logger::DEBUG
 
       @extra_loggers = []
       file_logger = ::Logger.new(logdev, shift_age, shift_size) if logdev
       @extra_loggers << file_logger if logdev
+
+      read_ecology_data
 
       # For UDP socket
       @server_addr = options[:address] || "0.0.0.0"
@@ -93,6 +94,24 @@ module Termite
       @@sockets[key] ||= UDPSocket.new
       @socket = @@sockets[key]
     end
+
+    private
+
+    def read_ecology_data
+      @application = Ecology.application
+
+      eco_logging_data = Ecology.data ? Ecology.data["logging"] : nil
+
+      @console_print = eco_logging_data ? eco_logging_data["console_print"] : "yes"
+      @console_print = nil if ["no", "off", "0"].include?(@console_print)
+
+      @default_component = eco_logging_data ? eco_logging_data["default_component"] : nil
+
+      # Look up extra fields to send back
+      @default_fields = eco_logging_data ? eco_logging_data["extra_json_fields"] : {}
+    end
+
+    public
 
     def add_logger(logger)
       @extra_loggers << logger
@@ -108,25 +127,20 @@ module Termite
 
       application = options[:application] || @application
 
-      eco_logging_data = Ecology.data ? Ecology.data["logging"] : nil
-
-      component = eco_logging_data ? eco_logging_data["default_component"] : nil
+      component ||= @default_component
       component = options[:component] if options.has_key?(:component)
       if component
         application += ":" + component
       end
 
-      # Look up extra fields to send back
-      default_fields = eco_logging_data ? eco_logging_data["extra_json_fields"] : {}
-
       data ||= {}
 
       if data.is_a?(Hash)
-        data = default_fields.merge(data)
+        data = @default_fields.merge(data)
         data = MultiJson.encode(data)
       elsif data.is_a?(String)
         # Can't merge a JSON string with default data
-        raise "Can't merge a JSON string with extra fields!" unless default_fields.empty?
+        raise "Can't merge a JSON string with extra fields!" unless @default_fields.empty?
       else
         raise "Unknown data object passed as JSON!"
       end
