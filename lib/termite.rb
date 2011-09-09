@@ -111,8 +111,20 @@ module Termite
         application += ":" + options[:component]
       end
 
+      # Look up extra fields to send back
+      eco_logging_data = Ecology.data ? Ecology.data["logging"] : nil
+      default_data = eco_logging_data ? eco_logging_data["extra_json_fields"] : {}
+
+      data ||= {}
+
       if data.is_a?(Hash)
+        data = default_data.merge(data)
         data = MultiJson.encode(data)
+      elsif data.is_a?(String)
+        # Can't merge a JSON string with default data
+        raise "Can't merge a JSON string with extra fields!" unless default_data.empty?
+      else
+        raise "Unknown data object passed as JSON!"
       end
 
       tid = Ecology.thread_id(Thread.current)
