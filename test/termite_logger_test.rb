@@ -2,12 +2,6 @@ require File.join(File.dirname(__FILE__), "test_helper.rb")
 require "syslog"
 
 class TermiteLoggerTest < Scope::TestCase
-  def expect_add(socket, severity_num, message, options = {})
-    app = options[:application] || "foo_app"
-    string = "<#{Syslog::LOG_LOCAL6 + severity_num}>Sep  7 15:09:20 samplehost #{app} [1234]: [main] #{message}"
-    socket.expects(:send).with(string, 0, "0.0.0.0", 514)
-  end
-
   context "with termite ecology" do
     setup do
       Ecology.reset
@@ -23,11 +17,6 @@ ECOLOGY_TEXT
       ENV['ECOLOGY_SPEC'] = "/tmp/bob.ecology"
       File.expects(:exist?).with("/tmp/bob.ecology").returns(true)
       File.expects(:read).with("/tmp/bob.ecology").returns(ecology_text)
-
-      Time.stubs(:now).returns(Time.at(1315433360))
-      Socket.stubs(:gethostname).returns("samplehost")
-      Process.stubs(:pid).returns("1234")
-      Ecology.stubs(:thread_id).returns("main")
     end
 
     context "and fully permissive logging levels set" do

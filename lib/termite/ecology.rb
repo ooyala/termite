@@ -1,6 +1,7 @@
 module Ecology
   class << self
-    attr_accessor :application
+    attr_reader :application
+    attr_reader :data
     attr_accessor :mutex
   end
 
@@ -10,26 +11,27 @@ module Ecology
 
   # Normally this is only for testing.
   def self.reset
-    Ecology.application = nil
-    @ecology_data = nil
+    @application = nil
+    @data = nil
     @ecology_initialized = nil
   end
 
   def self.read(ecology_pathname = nil)
     return if @ecology_initialized
 
-    Ecology.mutex.synchronize {
+    mutex.synchronize {
       return if @ecology_initialized
+
+      reset
 
       file_path = ENV['ECOLOGY_SPEC'] || ecology_pathname || default_ecology_name
       if File.exist?(file_path)
         contents = File.read(file_path)
-        @ecology_data = MultiJson.decode(contents);
+        @data = MultiJson.decode(contents);
 
-        Ecology.application = @ecology_data["application"] || File.basename($0)
-      else
-        Ecology.application = File.basename($0)
+        @application = @data ? @data["application"] : nil
       end
+      @application ||= File.basename($0)
 
       @ecology_initialized = true
     }
