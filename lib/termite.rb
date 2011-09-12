@@ -180,19 +180,23 @@ module Termite
       hostname = Socket.gethostname
       tag = Syslog::LOG_LOCAL6 + SYSLOG_SEVERITY_MAP[LEVEL_LOGGER_MAP[severity]]
 
-      syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: "
-      syslog_string += "[#{tid}] #{clean(message || block.call)} #{data}"
-      @socket.send(syslog_string, 0, @server_addr, @server_port)
-
-      if @console_print && severity >= @stderr_level
-        STDERR.puts syslog_string
-      elsif @console_print && severity >= @stdout_level
-        STDOUT.puts syslog_string
-      end
-
+      syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: [#{tid}] "
+      full_message = clean(message || block.call)
       ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
-      @extra_loggers.each do |logger|
-        logger.send(ruby_severity, syslog_string)
+
+      full_message.split("\n").each do |line|
+        message = syslog_string + "#{line} #{data}"
+        @socket.send(message, 0, @server_addr, @server_port)
+
+        if @console_print && severity >= @stderr_level
+          STDERR.puts message
+        elsif @console_print && severity >= @stdout_level
+          STDOUT.puts message
+        end
+
+        @extra_loggers.each do |logger|
+          logger.send(ruby_severity, message)
+        end
       end
 
       true
