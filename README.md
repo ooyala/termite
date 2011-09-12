@@ -95,6 +95,7 @@ An Ecology is a JSON file of roughly this structure:
     "filename": "/tmp/bobo.txt",
     "shift_age": 10,
     "shift_size": 1024000,
+    "stderr_level": "fatal"
   }
 }
 
@@ -115,6 +116,9 @@ Filename, shift_age and shift_size are the same as Ruby Logger's normal initiali
 parameters.  The first is the filename to log to, the second is how many total log files
 to keep, and the third is how large each log file can grow.  Or the second can be set to
 a value like "daily" or "monthly", and then the third is irrelevant.
+
+You can also set level, stdout_level and stderr_level explained above.  We allow numerical
+(syslog) values, or standard names of Ruby Logger severities.
 
 Releasing within Ooyala
 =======================

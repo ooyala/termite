@@ -79,20 +79,11 @@ module Termite
 
       Ecology.read
 
-      @level = ::Logger::DEBUG
-
-      @extra_loggers = []
-
       read_ecology_data
       @log_filename ||= logdev
 
       @file_logger = ::Logger.new(@log_filename, @shift_age || shift_age, @shift_size || shift_size) if @log_filename
       @extra_loggers << @file_logger if @file_logger
-
-      if @console_print
-        @stdout_level = ::Logger::INFO
-        @stderr_level = ::Logger::ERROR
-      end
 
       # For UDP socket
       @server_addr = options[:address] || "0.0.0.0"
@@ -106,26 +97,47 @@ module Termite
 
     private
 
+    def string_to_severity(str)
+      orig_string = str
+      str = str.strip.downcase
+      return str.to_i if str =~ /\d+/
+      ret = LOGGER_LEVEL_MAP[str.to_sym]
+      raise "Unknown logger severity #{orig_string}" unless ret
+      ret
+    end
+
     def read_ecology_data
       @application = Ecology.application
 
       eco_logging_data = Ecology.data ? Ecology.data["logging"] : nil
 
+      @extra_loggers = []
+
       if eco_logging_data
         # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
-        @console_print = eco_logging_data["console_print"]        
+        @console_print = eco_logging_data["console_print"] || "yes"
         @console_print = nil if ["no", "off", "0"].include?(@console_print)
         @log_filename = eco_logging_data["filename"]
         @shift_age = eco_logging_data["shift_age"]
         @shift_size = eco_logging_data["shift_size"]
         @default_component = eco_logging_data["default_component"]
+        @level = eco_logging_data["level"]
+        @level = string_to_severity(@level) if @level
+        @stderr_level = eco_logging_data["stderr_level"]
+        @stderr_level = string_to_severity(@stderr_level) if @stderr_level
+        @stdout_level = eco_logging_data["stdout_level"]
+        @stdout_level = string_to_severity(@stdout_level) if @stdout_level
 
         # Look up extra fields to send back
-        @default_fields = eco_logging_data["extra_json_fields"]
+        @default_fields = eco_logging_data["extra_json_fields"] || {}
       else
         @console_print = "yes"
         @default_fields = {}
       end
+
+      @level ||= ::Logger::DEBUG
+      @stdout_level ||= ::Logger::INFO
+      @stderr_level ||= ::Logger::ERROR
     end
 
     public

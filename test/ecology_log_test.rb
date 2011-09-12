@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class EcologyLogTest < Scope::TestCase
-  context "with a custom ecology and a logger" do
+  context "with a custom ecology" do
     setup do
       Ecology.reset
 
