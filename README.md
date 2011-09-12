@@ -39,10 +39,33 @@ Termite also supports full Ruby Logger initialize parameters for backward compat
   @logger = Termite::Logger.new("/var/lib/daily_termite_logs", "daily")
   @logger = Termite::Logger.new("/tmp/rotatable.txt", 15, 1024000)  # Up to 15 logs of size 1024000
 
+Log Level
+=========
+
+Termite loggers, like Ruby loggers, allow you to set the logger's level.  All events below that
+level will be silently discarded, and will also not be sent to non-syslog loggers.  You can change
+the level with "logger.level = Logger::WARN" and similar.
+
+By default, Termite will log events of all severities to standard output, and events of at least
+severity :error to standard error.  You can set .stdout_level and .stderr_level just like setting
+.level above.  Level takes precedence over the other two and stderr_level takes precedence over
+stdout_level.
+
+Non-Syslog Logging
+==================
+
+If a filename or handle is specified in the constructor, Termite will instantiate a Ruby Logger
+with the same parameters and mirror all events to it.
+
+You can pass in objects with an :add method to a Termite logger's "add_extra_logger" method, and
+from then on all events will be mirrored to that object.  This can be useful for chaining loggers
+if you need to.  Events below the Termite logger's level (see above) won't be mirrored.
+
 Translating to SysLog
 =====================
 
-Termite translates Ruby Logger severities into SysLog severities.  By default, this is the mapping:
+When writing to SysLog, Termite translates Ruby Logger severities into SysLog severities.  By
+default, this is the mapping:
 
 Logger   => SysLog
 :unknown => :alert

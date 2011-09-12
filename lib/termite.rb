@@ -70,6 +70,8 @@ module Termite
     # Log level for Logger compatibility.
 
     attr_accessor :level
+    attr_reader :stdout_level
+    attr_reader :stderr_level
     attr_reader :file_logger
 
     def initialize(logdev = nil, shift_age = 0, shift_size = 1048576, options = {})
@@ -80,10 +82,17 @@ module Termite
       @level = ::Logger::DEBUG
 
       @extra_loggers = []
-      file_logger = ::Logger.new(logdev, shift_age, shift_size) if logdev
-      @extra_loggers << file_logger if logdev
 
       read_ecology_data
+      @log_filename ||= logdev
+
+      @file_logger = ::Logger.new(@log_filename, @shift_age || shift_age, @shift_size || shift_size) if @log_filename
+      @extra_loggers << @file_logger if @file_logger
+
+      if @console_print
+        @stdout_level = ::Logger::INFO
+        @stderr_level = ::Logger::ERROR
+      end
 
       # For UDP socket
       @server_addr = options[:address] || "0.0.0.0"
@@ -102,13 +111,21 @@ module Termite
 
       eco_logging_data = Ecology.data ? Ecology.data["logging"] : nil
 
-      @console_print = eco_logging_data ? eco_logging_data["console_print"] : "yes"
-      @console_print = nil if ["no", "off", "0"].include?(@console_print)
+      if eco_logging_data
+        # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
+        @console_print = eco_logging_data["console_print"]        
+        @console_print = nil if ["no", "off", "0"].include?(@console_print)
+        @log_filename = eco_logging_data["filename"]
+        @shift_age = eco_logging_data["shift_age"]
+        @shift_size = eco_logging_data["shift_size"]
+        @default_component = eco_logging_data["default_component"]
 
-      @default_component = eco_logging_data ? eco_logging_data["default_component"] : nil
-
-      # Look up extra fields to send back
-      @default_fields = eco_logging_data ? eco_logging_data["extra_json_fields"] : {}
+        # Look up extra fields to send back
+        @default_fields = eco_logging_data["extra_json_fields"]
+      else
+        @console_print = "yes"
+        @default_fields = {}
+      end
     end
 
     public
@@ -134,7 +151,6 @@ module Termite
       end
 
       data ||= {}
-
       if data.is_a?(Hash)
         data = @default_fields.merge(data)
         data = MultiJson.encode(data)
@@ -155,6 +171,12 @@ module Termite
       syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: "
       syslog_string += "[#{tid}] #{clean(message || block.call)} #{data}"
       @socket.send(syslog_string, 0, @server_addr, @server_port)
+
+      if @console_print && severity >= @stderr_level
+        STDERR.puts syslog_string
+      elsif @console_print && severity >= @stdout_level
+        STDOUT.puts syslog_string
+      end
 
       ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
       @extra_loggers.each do |logger|
