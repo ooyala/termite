@@ -1,6 +1,7 @@
 require "rubygems"
 require "termite/version"
-require "termite/ecology"
+
+require "ecology"
 require "multi_json"
 
 require "thread"
