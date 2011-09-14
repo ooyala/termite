@@ -150,7 +150,8 @@ module Termite
       @socket
     end
 
-    def add(severity, message = nil, data = nil, options = {}, &block)
+    def raw_add(severity, message = nil, data = nil, options = {}, &block)
+      # Severity is a numerical severity using Ruby Logger's scale
       severity ||= ::Logger::UNKNOWN
       return true if severity < @level
 
@@ -182,11 +183,23 @@ module Termite
 
       syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: [#{tid}] "
       full_message = clean(message || block.call)
+
+      # ruby_severity is the Ruby Logger severity as a symbol
       ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
 
       full_message.split("\n").each do |line|
         message = syslog_string + "#{line} #{data}"
-        @socket.send(message, 0, @server_addr, @server_port)
+
+        begin
+          @socket.send(message, 0, @server_addr, @server_port)
+        rescue
+          # Didn't work.  Try built-in Ruby syslog
+          require "syslog"
+          Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
+            s.error("UDP syslog failed!  Falling back to libc syslog!")
+            s.send(LEVEL_LOGGER_MAP[severity], "#{line} #{data}")
+          end
+        end
 
         if @console_print && severity >= @stderr_level
           STDERR.puts message
@@ -200,6 +213,15 @@ module Termite
       end
 
       true
+    end
+
+    def add(*args)
+      begin
+        raw_add(*args)
+      rescue
+        STDERR.puts("Couldn't log to syslog!  Failing!  Arguments:")
+        STDERR.puts(args.inspect)
+      end
     end
 
     alias :log :add
