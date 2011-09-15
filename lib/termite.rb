@@ -193,12 +193,12 @@ module Termite
 
         begin
           @socket.send(message, 0, @server_addr, @server_port)
-        rescue
+        rescue Exception
           # Didn't work.  Try built-in Ruby syslog
           require "syslog"
           Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
-            s.error("UDP syslog failed!  Falling back to libc syslog!")
-            s.send(LEVEL_LOGGER_MAP[severity], "#{line} #{data}")
+            s.error("UDP syslog failed!  Falling back to libc syslog!") rescue nil
+            s.send(LEVEL_LOGGER_MAP[severity], "#{line} #{data}") rescue nil
           end
         end
 
@@ -219,7 +219,7 @@ module Termite
     def add(*args)
       begin
         raw_add(*args)
-      rescue
+      rescue Exception
         STDERR.puts("Couldn't log via Termite!  Failing!  Arguments:")
         STDERR.puts(args.inspect)
       end
