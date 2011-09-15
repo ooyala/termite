@@ -209,7 +209,7 @@ module Termite
         end
 
         @extra_loggers.each do |logger|
-          logger.send(ruby_severity, message)
+          logger.send(ruby_severity, message) rescue nil
         end
       end
 
@@ -220,7 +220,7 @@ module Termite
       begin
         raw_add(*args)
       rescue
-        STDERR.puts("Couldn't log to syslog!  Failing!  Arguments:")
+        STDERR.puts("Couldn't log via Termite!  Failing!  Arguments:")
         STDERR.puts(args.inspect)
       end
     end
