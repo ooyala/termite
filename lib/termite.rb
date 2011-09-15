@@ -110,31 +110,24 @@ module Termite
     def read_ecology_data
       @application = Ecology.application
 
-      eco_logging_data = Ecology.data ? Ecology.data["logging"] : nil
-
       @extra_loggers = []
 
-      if eco_logging_data
-        # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
-        @console_print = eco_logging_data["console_print"] || "yes"
-        @console_print = nil if ["no", "off", "0"].include?(@console_print)
-        @log_filename = eco_logging_data["filename"]
-        @shift_age = eco_logging_data["shift_age"]
-        @shift_size = eco_logging_data["shift_size"]
-        @default_component = eco_logging_data["default_component"]
-        @level = eco_logging_data["level"]
-        @level = string_to_severity(@level) if @level
-        @stderr_level = eco_logging_data["stderr_level"]
-        @stderr_level = string_to_severity(@stderr_level) if @stderr_level
-        @stdout_level = eco_logging_data["stdout_level"]
-        @stdout_level = string_to_severity(@stdout_level) if @stdout_level
+      # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
+      @console_print = Ecology.property("logging::console_print") || "yes"
+      @console_print = nil if ["no", "off", "0"].include?(@console_print)
 
-        # Look up extra fields to send back
-        @default_fields = eco_logging_data["extra_json_fields"] || {}
-      else
-        @console_print = "yes"
-        @default_fields = {}
-      end
+      @log_filename = Ecology.property("logging::filename", :as => :path)
+      @shift_age = Ecology.property("logging::shift_age")
+      @shift_size = Ecology.property("logging::shift_size")
+      @default_component = Ecology.property("logging::default_component")
+      @level = Ecology.property("logging::level")
+      @level = string_to_severity(@level) if @level
+      @stderr_level = Ecology.property("logging::stderr_level")
+      @stderr_level = string_to_severity(@stderr_level) if @stderr_level
+      @stdout_level = Ecology.property("logging::stdout_level")
+      @stdout_level = string_to_severity(@stdout_level) if @stdout_level
+
+      @default_fields = Ecology.property("logging::extra_json_fields") || {}
 
       @level ||= ::Logger::DEBUG
       @stdout_level ||= ::Logger::INFO

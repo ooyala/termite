@@ -24,7 +24,7 @@ EOS
   s.require_paths = ["lib"]
 
   s.add_dependency "multi_json"
-  s.add_dependency "ecology", "~>0.0.1"
+  s.add_dependency "ecology", "~>0.0.3"
 
   s.add_development_dependency "bundler", "~> 1.0.10"
   s.add_development_dependency "scope", "~> 0.2.1"
