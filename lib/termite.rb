@@ -196,9 +196,9 @@ module Termite
         end
 
         if @console_print && severity >= @stderr_level
-          STDERR.puts message
+          STDERR.puts line
         elsif @console_print && severity >= @stdout_level
-          STDOUT.puts message
+          STDOUT.puts line
         end
 
         @extra_loggers.each do |logger|
