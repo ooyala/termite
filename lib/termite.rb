@@ -202,7 +202,7 @@ module Termite
         end
 
         @extra_loggers.each do |logger|
-          logger.send(ruby_severity, message) rescue nil
+          logger.send(ruby_severity, line) rescue nil
         end
       end
 

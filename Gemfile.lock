@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    termite (0.0.6)
+    termite (0.0.7)
       ecology (~> 0.0.5)
       multi_json
 
