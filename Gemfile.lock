@@ -1,15 +1,15 @@
 PATH
   remote: .
   specs:
-    termite (0.0.5)
-      ecology (~> 0.0.3)
+    termite (0.0.6)
+      ecology (~> 0.0.4)
       multi_json
 
 GEM
   remote: http://rubygems.org/
   remote: http://gems.sv2/
   specs:
-    ecology (0.0.3)
+    ecology (0.0.4)
       multi_json
     minitest (2.3.0)
     mocha (0.9.12)
