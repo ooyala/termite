@@ -145,6 +145,7 @@ module Termite
     end
 
     def raw_add(severity, message = nil, data = nil, options = {}, &block)
+      raw_message = message
       # Severity is a numerical severity using Ruby Logger's scale
       severity ||= ::Logger::UNKNOWN
       return true if severity < @level
@@ -194,16 +195,16 @@ module Termite
             s.send(LEVEL_LOGGER_MAP[severity], "#{line} #{data}") rescue nil
           end
         end
+      end
 
-        if @console_print && severity >= @stderr_level
-          STDERR.puts line
-        elsif @console_print && severity >= @stdout_level
-          STDOUT.puts line
-        end
+      if @console_print && severity >= @stderr_level
+        STDERR.puts raw_message
+      elsif @console_print && severity >= @stdout_level
+        STDOUT.puts raw_message
+      end
 
-        @extra_loggers.each do |logger|
-          logger.send(ruby_severity, line) rescue nil
-        end
+      @extra_loggers.each do |logger|
+        logger.send(ruby_severity, raw_message) rescue nil
       end
 
       true
