@@ -38,4 +38,14 @@ class Scope::TestCase
     options[:extra_args] ||= [0, "0.0.0.0", 514]
     socket.expects(options[:method]).with(string, *options[:extra_args])
   end
+
+  def expect_console_add(socket, severity_num, message, options = {})
+    initialize_environment
+
+    app = options[:application] || "foo_app"
+
+    options[:method] ||= :send
+    options[:extra_args] ||= [0, "0.0.0.0", 514]
+    socket.expects(options[:method]).with(message, *options[:extra_args])
+  end
 end

@@ -212,9 +212,11 @@ module Termite
     def add(*args)
       begin
         raw_add(*args)
-      rescue Exception
+      rescue Exception => e
         STDERR.puts("Couldn't log via Termite!  Failing!  Arguments:")
         STDERR.puts(args.inspect)
+        STDERR.puts("Exception: #{e.message}")
+        STDERR.puts("Backtrace: #{e.backtrace.inspect}")
       end
     end
 
