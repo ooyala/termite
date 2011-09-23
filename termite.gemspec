@@ -18,9 +18,11 @@ EOS
 
   s.rubyforge_project = "termite"
 
-  s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
-  s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
+  ignores = File.readlines(".gitignore").grep(/\S+/).map {|pattern| pattern.chomp }
+  dotfiles = [".gemtest", ".gitignore", ".rspec", ".yardopts"]
+  s.files = Dir["**/*"].reject {|f| File.directory?(f) || ignores.any? {|i| File.fnmatch(i, f) } } + dotfiles
+  s.test_files = s.files.grep(/^spec\//)
+
   s.require_paths = ["lib"]
 
   s.add_dependency "multi_json"
