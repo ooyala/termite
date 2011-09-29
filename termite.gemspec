@@ -19,7 +19,7 @@ EOS
   s.rubyforge_project = "termite"
 
   ignores = File.readlines(".gitignore").grep(/\S+/).map {|pattern| pattern.chomp }
-  dotfiles = [".gemtest", ".gitignore", ".rspec", ".yardopts"]
+  dotfiles = Dir[".*"]
   s.files = Dir["**/*"].reject {|f| File.directory?(f) || ignores.any? {|i| File.fnmatch(i, f) } } + dotfiles
   s.test_files = s.files.grep(/^spec\//)
 
