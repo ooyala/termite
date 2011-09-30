@@ -29,6 +29,11 @@ ECOLOGY_TEXT
         @logger.log(Logger::FATAL, "foo!", {})
       end
 
+      should "treat << as add-with-info" do
+        expect_add(@logger.socket, 6, "foo! {}")
+        @logger << "foo!"
+      end
+
       should "correctly send an alert to Syslog" do
         expect_add(@logger.socket, 1, "foo! {}")
         @logger.add(Logger::UNKNOWN, "foo!", {})

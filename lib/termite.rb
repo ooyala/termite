@@ -223,12 +223,20 @@ module Termite
 
     alias :log :add
 
+    # This isn't perfect.  "Real" Ruby loggers use << to mean
+    # "write directly to the underlying store without adding
+    # headers or other cruft".  That's meaningful for file
+    # loggers, but not for syslog.
+    def << (message)
+      add(::Logger::INFO, message)
+    end
+
     ##
     # Allows messages of a particular log level to be ignored temporarily.
     #
     # Can you say "Broken Windows"?
 
-    def silence(temporary_level = Logger::ERROR)
+    def silence(temporary_level = ::Logger::ERROR)
       old_logger_level = @level
       @level = temporary_level
       yield
