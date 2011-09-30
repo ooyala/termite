@@ -21,7 +21,7 @@ EOS
   ignores = File.readlines(".gitignore").grep(/\S+/).map {|pattern| pattern.chomp }
   dotfiles = Dir[".*"]
   s.files = Dir["**/*"].reject {|f| File.directory?(f) || ignores.any? {|i| File.fnmatch(i, f) } } + dotfiles
-  s.test_files = s.files.grep(/^spec\//)
+  s.test_files = s.files.grep(/^test\//)
 
   s.require_paths = ["lib"]
 
