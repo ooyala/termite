@@ -34,7 +34,8 @@ You can also pass in JSON data after your message and before your options:
   @logger.fatal("Pain and misery!", { :where_it_hurts => "elbow" }, :component => "WhinyLib")
   @logger.info("I ache", {:where_it_hurts => "kidney"}, :application => "NotMe", :component => "StoicLib")
 
-Termite also supports full Ruby Logger initialize parameters for backward compatibility:
+Termite also supports full Ruby Logger initialize parameters for
+backward compatibility:
 
   @logger = Termite::Logger.new("/var/lib/daily_termite_logs", "daily")
   @logger = Termite::Logger.new("/tmp/rotatable.txt", 15, 1024000)  # Up to 15 logs of size 1024000
@@ -52,30 +53,35 @@ and console output *in addition* to your existing to-file output.
 Log Level
 =========
 
-Termite loggers, like Ruby loggers, allow you to set the logger's level.  All events below that
-level will be silently discarded, and will also not be sent to non-syslog loggers.  You can change
-the level with "logger.level = Logger::WARN" and similar.
+Termite loggers, like Ruby loggers, allow you to set the logger's
+level.  All events below that level will be silently discarded, and
+will also not be sent to non-syslog loggers.  You can change the level
+with "logger.level = Logger::WARN" and similar.
 
-By default, Termite will log events of all severities to standard output, and events of at least
-severity :error to standard error.  You can set .stdout_level and .stderr_level just like setting
-.level above.  Level takes precedence over the other two and stderr_level takes precedence over
-stdout_level.
+By default, Termite will log events of all severities to standard
+output, and events of at least severity :error to standard error.  You
+can set .stdout_level and .stderr_level just like setting .level
+above.  Level takes precedence over the other two and stderr_level
+takes precedence over stdout_level.
 
 Non-Syslog Logging
 ==================
 
-If a filename or handle is specified in the constructor, Termite will instantiate a Ruby Logger
-with the same parameters and mirror all events to it.
+If a filename or handle is specified in the constructor, Termite will
+instantiate a Ruby Logger with the same parameters and mirror all
+events to it.
 
-You can pass in objects with an :add method to a Termite logger's "add_extra_logger" method, and
-from then on all events will be mirrored to that object.  This can be useful for chaining loggers
-if you need to.  Events below the Termite logger's level (see above) won't be mirrored.
+You can pass in objects with an :add method to a Termite logger's
+"add_extra_logger" method, and from then on all events will be
+mirrored to that object.  This can be useful for chaining loggers if
+you need to.  Events below the Termite logger's level (see above)
+won't be mirrored.
 
 Translating to SysLog
 =====================
 
-When writing to SysLog, Termite translates Ruby Logger severities into SysLog severities.  By
-default, this is the mapping:
+When writing to SysLog, Termite translates Ruby Logger severities into
+SysLog severities.  By default, this is the mapping:
 
 Logger   => SysLog
 :unknown => :alert
@@ -88,8 +94,9 @@ Logger   => SysLog
 Configuring with an Ecology
 ===========================
 
-Termite supports a standard Ecology file.  By default, it will look at the location of the current
-executable ($0) with extension .ecology.  So "bob.rb" would have "bob.ecology" next to it.
+Termite supports a standard Ecology file.  By default, it will look at
+the location of the current executable ($0) with extension .ecology.
+So "bob.rb" would have "bob.ecology" next to it.
 
 An Ecology is a JSON file of roughly this structure:
 
@@ -109,26 +116,31 @@ An Ecology is a JSON file of roughly this structure:
   }
 }
 
-Absolutely every part of it is optional, including the presence of the file at all.
+Absolutely every part of it is optional, including the presence of the
+file at all.
 
-You can override the application name, as shown above.  Other than the application name,
-all Termite-specific parameters are under the "logging" field, as above.
+You can override the application name, as shown above.  Other than the
+application name, all Termite-specific parameters are under the
+"logging" field, as above.
 
-The default_component is what application component is given for an add() call by default.
-If set, it can be removed with ":component => nil" for a given add() call.
+The default_component is what application component is given for an
+add() call by default.  If set, it can be removed with ":component =>
+nil" for a given add() call.
 
 Extra JSON fields are added to the JSON data of every add() call.
 
-Console_print can be set to "off" (or "no" or "0") to turn off Termite printing to stderr
-and stdout by default at different log levels.
+Console_print can be set to "off" (or "no" or "0") to turn off Termite
+printing to stderr and stdout by default at different log levels.
 
-Filename, shift_age and shift_size are the same as Ruby Logger's normal initialize
-parameters.  The first is the filename to log to, the second is how many total log files
-to keep, and the third is how large each log file can grow.  Or the second can be set to
-a value like "daily" or "monthly", and then the third is irrelevant.
+Filename, shift_age and shift_size are the same as Ruby Logger's
+normal initialize parameters.  The first is the filename to log to,
+the second is how many total log files to keep, and the third is how
+large each log file can grow.  Or the second can be set to a value
+like "daily" or "monthly", and then the third is irrelevant.
 
-You can also set level, stdout_level and stderr_level explained above.  We allow numerical
-(syslog) values, or standard names of Ruby Logger severities.
+You can also set level, stdout_level and stderr_level explained above.
+We allow numerical (syslog) values, or standard names of Ruby Logger
+severities.
 
 Releasing within Ooyala
 =======================
