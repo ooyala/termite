@@ -39,6 +39,16 @@ Termite also supports full Ruby Logger initialize parameters for backward compat
   @logger = Termite::Logger.new("/var/lib/daily_termite_logs", "daily")
   @logger = Termite::Logger.new("/tmp/rotatable.txt", 15, 1024000)  # Up to 15 logs of size 1024000
 
+You can also use all the standard methods of Ruby logging:
+
+  @logger.log(Logger::INFO, "I feel Ruby-compatible")
+  @logger << "This message gets logged as INFO"
+
+Similarly, when using a file logger, the output should be very similar
+to what you'd get from a Ruby logger.  So a Termite logger is nearly a
+drop-in replacement for the Ruby logger, plus you get Syslog output
+and console output *in addition* to your existing to-file output.
+
 Log Level
 =========
 
