@@ -142,6 +142,10 @@ You can also set level, stdout_level and stderr_level explained above.
 We allow numerical (syslog) values, or standard names of Ruby Logger
 severities.
 
+If you reset your Ecology (usually used for testing), you should
+recreate all your Termite::Logger objects.  The old ones will still
+have stale settings from the old Ecology's defaults and data.
+
 Releasing within Ooyala
 =======================
 

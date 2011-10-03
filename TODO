@@ -1,3 +1,6 @@
 Ecology configuration:
-  * Extra loggers from Ecology
-  * Transport protocol from Ecology
+  * Load extra loggers from Ecology
+  * Load which transport protocol from Ecology
+
+When logging:
+  * Send call-site with data (configurable depth?)
