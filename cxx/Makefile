@@ -33,11 +33,8 @@ termite.o: termite.cc termite.h
 
 log4cxx: $(LOG4CXX)/src/main/cpp/.libs/liblog4cxx.a
 
-$(LOG4CXX)/src/main/cpp/liblog4cxx.la: 
-	pushd $(LOG4CXX)
-	./configure
-	make
-	popd
+$(LOG4CXX)/src/main/cpp/.libs/liblog4cxx.a:
+	cd $(LOG4CXX) && ./configure && make
 
 clean:
 	rm -f *.a *.o *.log termite termite_example termite_test
