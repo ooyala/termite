@@ -24,7 +24,7 @@ example: termite_example
 termite_example: termite_example.cc log4cxx libtermite.a
 	$(CXX) $(CXXFLAGS) -o termite_example termite_example.cc $(LDFLAGS)
 
-libtermite.a: termite.o
+libtermite.a: termite.o log4cxx
 	ar rc libtermite.a termite.o
 	ranlib libtermite.a
 
