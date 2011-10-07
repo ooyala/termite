@@ -16,15 +16,15 @@ all: libtermite.a
 test: termite_test
 	./termite_test
 
-termite_test: termite_test.cc log4cxx libtermite.a
+termite_test: termite_test.cc libtermite.a
 	$(CXX) $(CXXFLAGS) -o termite_test termite_test.cc $(LDFLAGS) -lgtest
 
 example: termite_example
 
-termite_example: termite_example.cc log4cxx libtermite.a
+termite_example: termite_example.cc libtermite.a
 	$(CXX) $(CXXFLAGS) -o termite_example termite_example.cc $(LDFLAGS)
 
-libtermite.a: termite.o log4cxx
+libtermite.a: log4cxx termite.o
 	ar rc libtermite.a termite.o
 	ranlib libtermite.a
 
