@@ -4,3 +4,6 @@ Ecology configuration:
 
 When logging:
   * Send call-site with data (configurable depth?)
+
+Environment variables:
+  * Add variable(s) to set console output when debugging
