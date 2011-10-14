@@ -201,6 +201,7 @@ module Termite
         STDERR.puts raw_message
       elsif @console_print && severity >= @stdout_level
         STDOUT.puts raw_message
+        STDOUT.flush
       end
 
       @extra_loggers.each do |logger|
