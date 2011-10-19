@@ -257,4 +257,36 @@ module Termite
       return message
     end
   end
+
+  def FakeLogger
+    Termite::LOGGER_MAP.each_key do |key|
+      define_method(LOGGER_LEVEL_MAP[key]) do
+        # Do nothing
+      end
+    end
+
+    # Alias the other methods to a do-nothing method
+    alias :add :error
+    alias :<< :error
+    alias :log :error
+    alias :silence :error
+    alias :add_logger :error
+
+    # Read and write level
+    attr_accessor :level
+
+    # For now, don't read an Ecology, just mock out these accessors.
+
+    def stdout_level
+      4
+    end
+
+    def stderr_level
+      2
+    end
+
+    def file_logger
+      nil
+    end
+  end
 end
