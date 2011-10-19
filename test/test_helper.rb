@@ -11,7 +11,8 @@ require "termite"
 class Scope::TestCase
   def set_up_ecology(file_contents, filename = "some.ecology")
     ENV["ECOLOGY_SPEC"] = filename
-    File.expects(:exist?).with(filename).returns(true)
+    File.stubs(:exist?).with(filename + ".erb").returns(false)
+    File.stubs(:exist?).with(filename).returns(true)
     File.expects(:read).with(filename).returns(file_contents)
   end
 
