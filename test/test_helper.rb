@@ -7,14 +7,10 @@ require "minitest/autorun"
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require "termite"
+require "ecology/test_methods"
 
 class Scope::TestCase
-  def set_up_ecology(file_contents, filename = "some.ecology")
-    ENV["ECOLOGY_SPEC"] = filename
-    File.stubs(:exist?).with(filename + ".erb").returns(false)
-    File.stubs(:exist?).with(filename).returns(true)
-    File.expects(:read).with(filename).returns(file_contents)
-  end
+  include Ecology::Test
 
   def initialize_environment
     unless @initialized_test_env
