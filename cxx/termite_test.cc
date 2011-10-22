@@ -34,6 +34,7 @@ TEST(TermiteTest, Base) {
   Termite* logger = Termite::GetTermite("BaseTest", "termite_test_base.log", false, false);
   logger->SetProperty("mykey", "my value");
   logger->SetProperty("mykey2", "my value2");
+  logger->SetProperty("mykey3", "100", true, false);
 
   TERMITE_DEBUG(logger, "Debug");
   logger->ClearProperty("mykey");
@@ -43,8 +44,8 @@ TEST(TermiteTest, Base) {
   TERMITE_ERROR(logger, "Error");
   TERMITE_FATAL(logger, "Fatal");
 
-  EXPECT_EQ("DEBUG BaseTest []: Debug {\"mykey\":\"my value\",\"mykey2\":\"my value2\"}\n\
-INFO  BaseTest []: Info {\"mykey2\":\"my value2\"}\n\
+  EXPECT_EQ("DEBUG BaseTest []: Debug {\"mykey\":\"my value\",\"mykey2\":\"my value2\",\"mykey3\":100}\n\
+INFO  BaseTest []: Info {\"mykey2\":\"my value2\",\"mykey3\":100}\n\
 WARN  BaseTest []: Warn {}\n\
 ERROR BaseTest []: Error {}\n\
 FATAL BaseTest []: Fatal {}\n",

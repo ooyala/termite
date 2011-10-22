@@ -33,16 +33,19 @@ Termite::Termite(string name, const char* file_path, bool enable_syslog, bool en
   // TODO(yuval): Read manifest file and include json properties.
 }
 
-void Termite::SetProperty(string key, string value) {
+void Termite::SetProperty(string key, string value, bool key_is_string, bool value_is_string) {
   boost::mutex::scoped_lock mylock(instance_mutex_);
   is_cache_current_ = false;
-  properties_[key.c_str()] = value;
+  string final_key = key_is_string ? "\"" + key + "\"" : key;
+  string final_value = value_is_string ? "\"" + value + "\"" : value;
+  properties_[final_key.c_str()] = final_value;
 }
 
-void Termite::ClearProperty(string key) {
+void Termite::ClearProperty(string key, bool key_is_string) {
   boost::mutex::scoped_lock mylock(instance_mutex_);
   is_cache_current_ = false;
-  properties_.erase(key.c_str());
+  string final_key = key_is_string ? "\"" + key + "\"" : key;
+  properties_.erase(final_key.c_str());
 }
 
 void Termite::ResetProperties() {
@@ -85,7 +88,8 @@ void Termite::RebuildPropertyCache() {
     } else {
         str += ",";
     }
-    str += "\"" + p->first + "\":\"" + p->second + "\"";
+
+    str += p->first + ":" + p->second;
   }
   str += "}";
   cached_prop_str_ = str;
