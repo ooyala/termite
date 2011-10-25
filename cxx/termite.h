@@ -62,10 +62,10 @@ namespace termite {
 class Termite {
  public:
   // Allows the user to set key-value pairs which are passed as JSON with each log message.
-  void SetProperty(string key, string value, bool key_is_string = true, bool value_is_string = true);
+  void SetProperty(string key, string value, bool value_is_string = true);
 
   // Removes the key-value pair with the given key from the JSON list.
-  void ClearProperty(string key, bool key_is_string = true);
+  void ClearProperty(string key);
 
   // Removes all the key-value pairs from the JSON list.
   void ResetProperties();

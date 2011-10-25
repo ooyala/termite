@@ -33,18 +33,18 @@ Termite::Termite(string name, const char* file_path, bool enable_syslog, bool en
   // TODO(yuval): Read manifest file and include json properties.
 }
 
-void Termite::SetProperty(string key, string value, bool key_is_string, bool value_is_string) {
+void Termite::SetProperty(string key, string value, bool value_is_string) {
   boost::mutex::scoped_lock mylock(instance_mutex_);
   is_cache_current_ = false;
-  string final_key = key_is_string ? "\"" + key + "\"" : key;
+  string final_key = "\"" + key + "\"";
   string final_value = value_is_string ? "\"" + value + "\"" : value;
   properties_[final_key.c_str()] = final_value;
 }
 
-void Termite::ClearProperty(string key, bool key_is_string) {
+void Termite::ClearProperty(string key) {
   boost::mutex::scoped_lock mylock(instance_mutex_);
   is_cache_current_ = false;
-  string final_key = key_is_string ? "\"" + key + "\"" : key;
+  string final_key = "\"" + key + "\"";
   properties_.erase(final_key.c_str());
 }
 
