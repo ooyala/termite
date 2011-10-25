@@ -34,7 +34,7 @@ TEST(TermiteTest, Base) {
   Termite* logger = Termite::GetTermite("BaseTest", "termite_test_base.log", false, false);
   logger->SetProperty("mykey", "my value");
   logger->SetProperty("mykey2", "my value2");
-  logger->SetProperty("mykey3", "100", true, false);
+  logger->SetProperty("mykey3", "100", false);
 
   TERMITE_DEBUG(logger, "Debug");
   logger->ClearProperty("mykey");
