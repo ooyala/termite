@@ -24,7 +24,7 @@ module Termite
     }
 
     # Get Ruby Logger labels for Logger-compatible output
-    RUBY_LOGGER_SEV_LABELS = ::Logger.const_get :SEV_LABEL
+    RUBY_LOGGER_SEV_LABELS = ::Logger::SEV_LABEL
 
     ##
     # Maps Ruby Logger log levels to their values so we can silence.
