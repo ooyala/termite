@@ -23,6 +23,9 @@ module Termite
       :debug   => :debug,
     }
 
+    # Get Ruby Logger labels for Logger-compatible output
+    RUBY_LOGGER_SEV_LABELS = ::Logger.const_get :SEV_LABEL
+
     ##
     # Maps Ruby Logger log levels to their values so we can silence.
 
@@ -126,6 +129,10 @@ module Termite
       @stderr_level = string_to_severity(@stderr_level) if @stderr_level
       @stdout_level = Ecology.property("logging::stdout_level")
       @stdout_level = string_to_severity(@stdout_level) if @stdout_level
+      @stderr_logger_prefix = Ecology.property("logging::stderr_logger_prefix")
+      @stdout_logger_prefix = Ecology.property("logging::stdout_logger_prefix")
+      # TODO(edanaher,2012-01-25): It'd be nice to have a file_logger_prefix, but that'd be a different codepath
+      # and will hopefully eventually be obsoleted by more general configuration anyway.
 
       @default_fields = Ecology.property("logging::extra_json_fields") || {}
 
@@ -197,10 +204,16 @@ module Termite
         end
       end
 
+      # Lifted from Logger::Formatter
+      ruby_logger_severity = RUBY_LOGGER_SEV_LABELS[severity]
+      ruby_logger_message = "%s, [%s#%d] %5s -- %s: %s" % [ruby_logger_severity[0..0],
+          (time.strftime("%Y-%m-%dT%H:%M:%S.") << "%06d " % time.usec),
+          $$, ruby_logger_severity, "", raw_message]
+
       if @console_print && severity >= @stderr_level
-        STDERR.puts raw_message
+        STDERR.puts (@stderr_logger_prefix ? ruby_logger_message : raw_message)
       elsif @console_print && severity >= @stdout_level
-        STDOUT.puts raw_message
+        STDOUT.puts (@stdout_logger_prefix ? ruby_logger_message : raw_message)
         STDOUT.flush
       end
 
