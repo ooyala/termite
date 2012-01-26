@@ -211,9 +211,9 @@ module Termite
           $$, ruby_logger_severity, "", raw_message]
 
       if @console_print && severity >= @stderr_level
-        STDERR.puts (@stderr_logger_prefix ? ruby_logger_message : raw_message)
+        STDERR.puts(@stderr_logger_prefix ? ruby_logger_message : raw_message)
       elsif @console_print && severity >= @stdout_level
-        STDOUT.puts (@stdout_logger_prefix ? ruby_logger_message : raw_message)
+        STDOUT.puts(@stdout_logger_prefix ? ruby_logger_message : raw_message)
         STDOUT.flush
       end
 
