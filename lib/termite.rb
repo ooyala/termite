@@ -210,10 +210,13 @@ module Termite
           (time.strftime("%Y-%m-%dT%H:%M:%S.") << "%06d " % time.usec),
           $$, ruby_logger_severity, "", raw_message]
 
+      # Ruby puts does two writes: one of the string passed in and one of a newline.  This is unacceptable for
+      # logging in a multi-process environment (e.g., unicorn), as these writes can be interlaced.
+      # So instead, print a single string with explicit newline.
       if @console_print && severity >= @stderr_level
-        STDERR.puts(@stderr_logger_prefix ? ruby_logger_message : raw_message)
+        STDERR.print((@stderr_logger_prefix ? ruby_logger_message : raw_message) + "\n")
       elsif @console_print && severity >= @stdout_level
-        STDOUT.puts(@stdout_logger_prefix ? ruby_logger_message : raw_message)
+        STDOUT.print((@stdout_logger_prefix ? ruby_logger_message : raw_message) + "\n")
         STDOUT.flush
       end
 
