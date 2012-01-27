@@ -215,6 +215,7 @@ module Termite
       # So instead, print a single string with explicit newline.
       if @console_print && severity >= @stderr_level
         STDERR.print((@stderr_logger_prefix ? ruby_logger_message : raw_message) + "\n")
+        STDERR.flush # Only needed if STDERR has been reopened without auto-flush
       elsif @console_print && severity >= @stdout_level
         STDOUT.print((@stdout_logger_prefix ? ruby_logger_message : raw_message) + "\n")
         STDOUT.flush
