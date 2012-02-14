@@ -83,7 +83,7 @@ module Termite
 
       Ecology.read
 
-      read_ecology_data
+      read_ecology_data(options)
       @log_filename ||= logdev
 
       @file_logger = ::Logger.new(@log_filename, @shift_age || shift_age, @shift_size || shift_size) if @log_filename
@@ -110,27 +110,30 @@ module Termite
       ret
     end
 
-    def read_ecology_data
+    def read_ecology_data(options = {})
       @application = Ecology.application
 
       @extra_loggers = []
 
       # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
-      @console_print = Ecology.property("logging::console_print") || "yes"
+      @console_print = options[:console_print] || Ecology.property("logging::console_print") || "yes"
       @console_print = nil if ["no", "off", "0"].include?(@console_print)
 
-      @log_filename = Ecology.property("logging::filename", :as => :path)
-      @shift_age = Ecology.property("logging::shift_age")
-      @shift_size = Ecology.property("logging::shift_size")
-      @default_component = Ecology.property("logging::default_component")
-      @level = Ecology.property("logging::level")
+      @log_filename = options[:logging_filename] || Ecology.property("logging::filename", :as => :path)
+      @shift_age = options[:shift_age] || Ecology.property("logging::shift_age")
+      @shift_size = options[:shift_size] || Ecology.property("logging::shift_size")
+      @default_component = options[:default_component] || options[:component] ||
+        Ecology.property("logging::default_component")
+      @level = options[:level] || Ecology.property("logging::level")
       @level = string_to_severity(@level) if @level
-      @stderr_level = Ecology.property("logging::stderr_level")
+      @stderr_level = options[:stderr_level] || Ecology.property("logging::stderr_level")
       @stderr_level = string_to_severity(@stderr_level) if @stderr_level
-      @stdout_level = Ecology.property("logging::stdout_level")
+      @stdout_level = options[:stdout_level] || Ecology.property("logging::stdout_level")
       @stdout_level = string_to_severity(@stdout_level) if @stdout_level
-      @stderr_logger_prefix = Ecology.property("logging::stderr_logger_prefix")
-      @stdout_logger_prefix = Ecology.property("logging::stdout_logger_prefix")
+      @stderr_logger_prefix = options[:stderr_logger_prefix] ||
+        Ecology.property("logging::stderr_logger_prefix")
+      @stdout_logger_prefix = options[:stdout_logger_prefix] ||
+        Ecology.property("logging::stdout_logger_prefix")
       # TODO(edanaher,2012-01-25): It'd be nice to have a file_logger_prefix, but that'd be a different codepath
       # and will hopefully eventually be obsoleted by more general configuration anyway.
 
@@ -306,4 +309,5 @@ module Termite
       nil
     end
   end
+
 end
