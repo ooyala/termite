@@ -20,9 +20,10 @@ your Gemfile or on your gem command line.
 Logging Dynamically
 ===================
 
-Create a logger with something like:
+Create a logger with something like one of these:
 
   @logger = Termite::Logger.new
+  @logger = Termite::Logger.new :component => "MyLibrary"
 
 Then use it like a regular logger, possibly with options:
 
