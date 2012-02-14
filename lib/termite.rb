@@ -179,7 +179,7 @@ module Termite
         raise "Unknown data object passed as JSON!"
       end
 
-      tid = Ecology.thread_id(Thread.current)
+      tid = Ecology.thread_id(::Thread.current)
       time = Time.now
       day = time.strftime("%b %d").sub(/0(\d)/, ' \\1')
       time_of_day = time.strftime("%T")
@@ -309,5 +309,24 @@ module Termite
       nil
     end
   end
+end
 
+module Termite
+  module Thread
+    def self.new(*args, &block)
+      ::Thread.new do
+        begin
+          block.call
+        rescue ::Exception
+          if args[0].respond_to?(:warn)
+            logger = args[0]
+          else
+            logger = ::Termite::Logger.new(*args)
+          end
+          logger.warn "Exception in thread: #{$!.message}"
+          logger.warn "  Backtrace:\n#{$!.backtrace.join("\n")}"
+        end
+      end
+    end
+  end
 end
