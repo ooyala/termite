@@ -1,6 +1,6 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
-class EcologyLogTest < Scope::TestCase
+class StderrLogTest < Scope::TestCase
   context "with a custom ecology" do
     setup do
       Ecology.reset
@@ -22,13 +22,13 @@ ECOLOGY_CONTENTS
       end
 
       should "log fatal errors to STDERR" do
-        expect_console_add(STDERR, 2, 'oh no!', :application => "MyApp", :method => :puts, :extra_args => [])
+        expect_console_add(STDERR, 2, 'oh no!', :application => "MyApp", :method => :print, :extra_args => [])
         STDOUT.expects(:puts).never
         @logger.fatal("oh no!")
       end
 
       should "log warnings to STDOUT" do
-        expect_console_add(STDOUT, 4, 'oh no!', :application => "MyApp", :method => :puts, :extra_args => [])
+        expect_console_add(STDOUT, 4, 'oh no!', :application => "MyApp", :method => :print, :extra_args => [])
         STDERR.expects(:puts).never
         @logger.warn("oh no!")
       end
