@@ -79,7 +79,10 @@ module Termite
     attr_reader :file_logger
 
     def initialize(logdev = nil, shift_age = 0, shift_size = 1048576, options = {})
-      options = logdev if(logdev.is_a?(Hash))
+      if logdev.is_a?(Hash)
+        options = logdev
+        logdev = nil
+      end
 
       Ecology.read
 
