@@ -1,0 +1,13 @@
+#!/bin/bash
+# Termite: Ooyala standard logging
+set -e
+
+if [ "$#" -lt 3 ];
+then
+  echo "Termite: Ooyala standard logging (to syslog and stderr)"
+  echo "Usage: `basename $0` <app or component> <fatal|error|warning|info|debug> <message> [{\"key\":\"value\",\"key2\":\"value2\"}]"
+  echo "    -s: also log to standard error"
+  exit 255
+fi
+
+logger -i -s -t $1 -p local6.$2 "$3 $4"
