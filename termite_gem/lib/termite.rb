@@ -102,6 +102,8 @@ module Termite
 
     def read_ecology_data(options = {})
       @application = Ecology.application
+      @default_component = options[:default_component] || options[:component] ||
+        Ecology.property("logging::default_component")
 
       # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
       @console_print = options[:console_print] || Ecology.property("logging::console_print") || "yes"
@@ -125,8 +127,6 @@ module Termite
       @log_filename = options[:logging_filename] || Ecology.property("logging::filename", :as => :path)
       @shift_age = options[:shift_age] || Ecology.property("logging::shift_age")
       @shift_size = options[:shift_size] || Ecology.property("logging::shift_size")
-      @default_component = options[:default_component] || options[:component] ||
-        Ecology.property("logging::default_component")
       @level = options[:level] || Ecology.property("logging::level")
       @level = string_to_severity(@level) if @level
       @stderr_level = options[:stderr_level] || Ecology.property("logging::stderr_level")
@@ -186,12 +186,9 @@ module Termite
       return true if severity < @level
 
       application = options[:application] || @application
+      component = options[:component] || @default_component
 
-      component ||= @default_component
-      component = options[:component] if options.has_key?(:component)
-      if component
-        application += ":" + component
-      end
+      application += ":" + component if component
 
       data ||= {}
       if data.is_a?(Hash)
