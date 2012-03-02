@@ -186,7 +186,8 @@ module Termite
       return true if severity < @level
 
       application = options[:application] || @application
-      component = options[:component] || @default_component
+      component = @default_component
+      component = options[:component] if options.has_key?(:component)
 
       application += ":" + component if component
 
