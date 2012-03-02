@@ -107,6 +107,21 @@ module Termite
       @console_print = options[:console_print] || Ecology.property("logging::console_print") || "yes"
       @console_print = nil if ["no", "off", "0"].include?(@console_print)
 
+      Ecology.property("logging::sinks") ? read_sinked_ecology(options) : read_unsinked_ecology(options)
+
+      @default_fields = Ecology.property("logging::extra_json_fields") || {}
+
+      @level ||= ::Logger::DEBUG
+      @stdout_level ||= ::Logger::INFO
+      @stderr_level ||= ::Logger::ERROR
+    end
+
+    def read_sinked_ecology(options)
+
+    end
+
+    # This is the codepath for ecology files that do not have a 'sinks' section defined
+    def read_unsinked_ecology(options)
       @log_filename = options[:logging_filename] || Ecology.property("logging::filename", :as => :path)
       @shift_age = options[:shift_age] || Ecology.property("logging::shift_age")
       @shift_size = options[:shift_size] || Ecology.property("logging::shift_size")
@@ -122,14 +137,9 @@ module Termite
         Ecology.property("logging::stderr_logger_prefix")
       @stdout_logger_prefix = options[:stdout_logger_prefix] ||
         Ecology.property("logging::stdout_logger_prefix")
-      # TODO(edanaher,2012-01-25): It'd be nice to have a file_logger_prefix, but that'd be a different codepath
-      # and will hopefully eventually be obsoleted by more general configuration anyway.
+      @file_logger_prefix = options[:use_logger_prefix] ||
+        Ecology.property("logging::use_logger_prefix")
 
-      @default_fields = Ecology.property("logging::extra_json_fields") || {}
-
-      @level ||= ::Logger::DEBUG
-      @stdout_level ||= ::Logger::INFO
-      @stderr_level ||= ::Logger::ERROR
     end
 
     def string_to_severity(str)
@@ -232,15 +242,15 @@ module Termite
       # logging in a multi-process environment (e.g., unicorn), as these writes can be interlaced.
       # So instead, print a single string with explicit newline.
       if @console_print && severity >= @stderr_level
-        STDERR.print((@stderr_logger_prefix ? ruby_logger_message : raw_message) + "\n")
+        STDERR.print((@stderr_logger_prefix || @use_logger_prefix ? ruby_logger_message : raw_message) + "\n")
         STDERR.flush # Only needed if STDERR has been reopened without auto-flush
       elsif @console_print && severity >= @stdout_level
-        STDOUT.print((@stdout_logger_prefix ? ruby_logger_message : raw_message) + "\n")
+        STDOUT.print((@stdout_logger_prefix || @use_logger_prefix ? ruby_logger_message : raw_message) + "\n")
         STDOUT.flush
       end
 
       @extra_loggers.each do |logger|
-        logger.send(ruby_severity, raw_message) rescue nil
+        logger.send(ruby_severity, @use_logger_prefix ? ruby_logger_message : raw_message) rescue nil
       end
 
       true
