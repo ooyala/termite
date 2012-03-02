@@ -78,7 +78,7 @@ module Termite
     attr_reader :stderr_level
     attr_reader :file_logger
 
-    def initialize(logdev = nil, shift_age = 0, shift_size = 1048576, options = {})
+    def initialize(logdev = nil, shift_age = nil, shift_size = nil, options = {})
       if logdev.is_a?(Hash)
         options = logdev
         logdev = nil
@@ -86,37 +86,22 @@ module Termite
 
       Ecology.read
 
-      read_ecology_data(options)
+      @extra_loggers ||= []
       @log_filename ||= logdev
+      @shift_age ||= shift_age
+      @shift_size ||= shift_size
 
-      @file_logger = ::Logger.new(@log_filename, @shift_age || shift_age, @shift_size || shift_size) if @log_filename
-      @extra_loggers << @file_logger if @file_logger
+      read_ecology_data(options)
 
-      # For UDP socket
-      @server_addr = options[:address] || "0.0.0.0"
-      @server_port = options[:port] ? options[:port].to_i : 514
+      setup_file_logger if @log_filename
 
-      @@sockets ||= {}
-      key = "#{@server_addr}:#{@server_port}"
-      @@sockets[key] ||= UDPSocket.new
-      @socket = @@sockets[key]
+      setup_syslog_vars(options)
     end
 
     private
 
-    def string_to_severity(str)
-      orig_string = str
-      str = str.strip.downcase
-      return str.to_i if str =~ /\d+/
-      ret = LOGGER_LEVEL_MAP[str.to_sym]
-      raise "Unknown logger severity #{orig_string}" unless ret
-      ret
-    end
-
     def read_ecology_data(options = {})
       @application = Ecology.application
-
-      @extra_loggers = []
 
       # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
       @console_print = options[:console_print] || Ecology.property("logging::console_print") || "yes"
@@ -145,6 +130,33 @@ module Termite
       @level ||= ::Logger::DEBUG
       @stdout_level ||= ::Logger::INFO
       @stderr_level ||= ::Logger::ERROR
+    end
+
+    def string_to_severity(str)
+      orig_string = str
+      str = str.strip.downcase
+      return str.to_i if str =~ /\d+/
+      ret = LOGGER_LEVEL_MAP[str.to_sym]
+      raise "Unknown logger severity #{orig_string}" unless ret
+      ret
+    end
+
+    def setup_file_logger
+      @file_logger = ::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576)
+      @extra_loggers << @file_logger
+    end
+
+    def setup_syslog_vars(options)
+      # For UDP socket
+      @server_addr = options[:address] || "0.0.0.0"
+      @server_port = options[:port] ? options[:port].to_i : 514
+      @socket = find_or_create_socket
+    end
+
+    def find_or_create_socket
+      @@sockets ||= {}
+      key = "#{@server_addr}:#{@server_port}"
+      @@sockets[key] ||= UDPSocket.new
     end
 
     public
