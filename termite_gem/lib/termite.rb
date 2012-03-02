@@ -85,12 +85,10 @@ module Termite
       end
 
       Ecology.read
-
-      @extra_loggers ||= []
-
       read_ecology_data(options)
 
       # Use the parameter values if not set in ecology
+      @extra_loggers ||= []
       @log_filename ||= logdev
       @shift_age ||= shift_age
       @shift_size ||= shift_size
