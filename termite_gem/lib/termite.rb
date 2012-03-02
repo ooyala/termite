@@ -87,11 +87,13 @@ module Termite
       Ecology.read
 
       @extra_loggers ||= []
+
+      read_ecology_data(options)
+
+      # Use the parameter values if not set in ecology
       @log_filename ||= logdev
       @shift_age ||= shift_age
       @shift_size ||= shift_size
-
-      read_ecology_data(options)
 
       setup_file_logger if @log_filename
 
@@ -153,7 +155,7 @@ module Termite
 
     def setup_file_logger
       @file_logger = ::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576)
-      @extra_loggers << @file_logger
+      add_logger @file_logger
     end
 
     def setup_syslog_vars(options)
