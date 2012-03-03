@@ -179,8 +179,7 @@ module Termite
       @socket
     end
 
-    def raw_add(severity, message = nil, data = nil, options = {}, &block)
-      raw_message = message
+    def raw_add(severity, raw_message = nil, data = nil, options = {}, &block)
       # Severity is a numerical severity using Ruby Logger's scale
       severity ||= ::Logger::UNKNOWN
       return true if severity < @level
@@ -210,16 +209,16 @@ module Termite
       tag = Syslog::LOG_LOCAL6 + SYSLOG_SEVERITY_MAP[LEVEL_LOGGER_MAP[severity]]
 
       syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: [#{tid}] "
-      full_message = clean(message || block.call)
+      full_message = clean(raw_message || block.call)
 
       # ruby_severity is the Ruby Logger severity as a symbol
       ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
 
       full_message.split("\n").each do |line|
-        message = syslog_string + "#{line} #{data}"
+        syslog_message = syslog_string + "#{line} #{data}"
 
         begin
-          @socket.send(message, 0, @server_addr, @server_port)
+          @socket.send(syslog_message, 0, @server_addr, @server_port)
         rescue Exception
           # Didn't work.  Try built-in Ruby syslog
           require "syslog"
