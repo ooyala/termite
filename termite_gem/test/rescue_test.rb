@@ -31,12 +31,11 @@ class RescueTest < Scope::TestCase
         @logger.fatal("Woe is me!")
         assert true, "Nothing was raised!  Yay!"
       rescue Exception
-        flunk "Logging an event raised an assertion outside the logger!"        
+        flunk "Logging an event raised an assertion outside the logger!"
       end
     end
 
     should "continue even if internal logic gives an error" do
-      #Time.expects(:now).raises(Exception.new "You suck!")
       Ecology.expects(:thread_id).raises(Exception.new "Ecology thread_id dies!")
       begin
         @logger.fatal("Woe is me!")

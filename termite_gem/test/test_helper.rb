@@ -28,7 +28,7 @@ class Scope::TestCase
   def expect_add(socket, severity_num, message, options = {})
     initialize_environment
 
-    app = options[:application] || "foo_app"
+    app = options[:application] || "foo_app:whatcomponent"
     string = "<#{Syslog::LOG_LOCAL6 + severity_num}>Sep  7 15:09:20 samplehost #{app} [1234]: [main] #{message}"
 
     options[:method] ||= :send

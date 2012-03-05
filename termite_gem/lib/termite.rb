@@ -102,16 +102,16 @@ module Termite
 
     def read_ecology_data(options = {})
       @application = Ecology.application
-      @default_component = options[:default_component] || options[:component] ||
-        Ecology.property("logging::default_component")
+      @default_component = options[:component] || Ecology.property("logging::default_component") ||
+        options[:default_component]
 
       # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
-      @console_print = options[:console_print] || Ecology.property("logging::console_print") || "yes"
+      @console_print = Ecology.property("logging::console_print") || options[:console_print] || "yes"
       @console_print = nil if ["no", "off", "0"].include?(@console_print)
 
       Ecology.property("logging::sinks") ? read_sinked_ecology(options) : read_unsinked_ecology(options)
 
-      @default_fields = Ecology.property("logging::extra_json_fields") || {}
+      @default_fields = Ecology.property("logging::extra_json_fields") || options[:extra_json_fields] || {}
 
       @level ||= ::Logger::DEBUG
       @stdout_level ||= ::Logger::INFO
@@ -124,21 +124,20 @@ module Termite
 
     # This is the codepath for ecology files that do not have a 'sinks' section defined
     def read_unsinked_ecology(options)
-      @log_filename = options[:logging_filename] || Ecology.property("logging::filename", :as => :path)
-      @shift_age = options[:shift_age] || Ecology.property("logging::shift_age")
-      @shift_size = options[:shift_size] || Ecology.property("logging::shift_size")
-      @level = options[:level] || Ecology.property("logging::level")
+      @log_filename = Ecology.property("logging::filename", :as => :path) || options[:logging_filename]
+      @shift_age = Ecology.property("logging::shift_age") || options[:shift_age]
+      @shift_size = Ecology.property("logging::shift_size") || options[:shift_size]
+      @level = Ecology.property("logging::level") || options[:level]
       @level = string_to_severity(@level) if @level
-      @stderr_level = options[:stderr_level] || Ecology.property("logging::stderr_level")
+      @stderr_level = Ecology.property("logging::stderr_level") || options[:stderr_level]
       @stderr_level = string_to_severity(@stderr_level) if @stderr_level
-      @stdout_level = options[:stdout_level] || Ecology.property("logging::stdout_level")
+      @stdout_level = Ecology.property("logging::stdout_level") || options[:stdout_level]
       @stdout_level = string_to_severity(@stdout_level) if @stdout_level
-      @stderr_logger_prefix = options[:stderr_logger_prefix] ||
-        Ecology.property("logging::stderr_logger_prefix")
-      @stdout_logger_prefix = options[:stdout_logger_prefix] ||
-        Ecology.property("logging::stdout_logger_prefix")
-      @file_logger_prefix = options[:use_logger_prefix] ||
-        Ecology.property("logging::use_logger_prefix")
+      @stderr_logger_prefix = Ecology.property("logging::stderr_logger_prefix") ||
+        options[:stderr_logger_prefix]
+      @stdout_logger_prefix = Ecology.property("logging::stdout_logger_prefix") ||
+        options[:stdout_logger_prefix]
+      @file_logger_prefix = Ecology.property("logging::use_logger_prefix") || options[:use_logger_prefix]
 
     end
 
@@ -184,7 +183,7 @@ module Termite
       severity ||= ::Logger::UNKNOWN
       return true if severity < @level
 
-      application = options[:application] || @application
+      application =  options[:application] || @application
       component = @default_component
       component = options[:component] if options.has_key?(:component)
 

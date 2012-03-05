@@ -8,7 +8,11 @@ class TermiteLoggerTest < Scope::TestCase
 
       set_up_ecology <<ECOLOGY_TEXT
 {
-  "application": "foo_app"
+  "application": "foo_app",
+  "logging":
+    {
+      "default_component": "whatcomponent"
+    }
 }
 ECOLOGY_TEXT
     end
@@ -70,14 +74,19 @@ ECOLOGY_TEXT
         @logger = Termite::Logger.new("/tmp/test_log_output.txt")  # Test with output file
       end
 
-      should "allow overriding application name" do
-        expect_add(@logger.socket, 2, "foo! {}", :application => "bar_app")
+      should "override application name from ecology" do
+        expect_add(@logger.socket, 2, "foo! {}", :application => "bar_app:whatcomponent")
         @logger.fatal("foo!", {}, :application => "bar_app")
       end
 
-      should "allow setting a component" do
-        expect_add(@logger.socket, 2, "foo! {}", :application => "foo_app:whatcomponent")
-        @logger.fatal("foo!", {}, :component => "whatcomponent")
+      should "override component from ecology" do
+        expect_add(@logger.socket, 2, "foo! {}", :application => "foo_app:thatcomponent")
+        @logger.fatal("foo!", {}, :component => "thatcomponent")
+      end
+
+      should "override application and component from ecology" do
+        expect_add(@logger.socket, 2, "foo! {}", :application => "bar_app:thatcomponent")
+        @logger.fatal("foo!", {}, :application => "bar_app", :component => "thatcomponent")
       end
     end
 
