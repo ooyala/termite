@@ -166,7 +166,7 @@ module Termite
     # For each sink, and to loggers
     def instantiate_sinks(sinks, options)
       sinks = sinks.dup
-
+      syslog = false
       sinks.each do |sink|
         cur_logger = case sink["type"]
           when "file"
@@ -183,6 +183,7 @@ module Termite
           when "stderr"
             ::Logger.new(STDERR)
           when "syslog"
+            syslog = true
             setup_syslog_logger(options)
           when "hastur"
             # Write this
@@ -190,6 +191,9 @@ module Termite
         sink["logger"] = cur_logger
       end
       @loggers = sinks
+
+      # Create syslog logger if not defined in sinks
+      add_logger(setup_syslog_logger(options), "type" => "syslog", "transport" => "UDP") unless syslog
 
       # Constructor params logger
       add_logger(::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576), "type" => "file",
