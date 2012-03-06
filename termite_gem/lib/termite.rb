@@ -93,8 +93,6 @@ module Termite
 
       Ecology.read
       read_ecology_data(options)
-
-      setup_syslog_vars(options)
     end
 
     private
@@ -170,25 +168,24 @@ module Termite
 
       sinks.each do |sink|
         cur_logger = case sink["type"]
-        when "file"
-          case sink["filename"]
-          when STDOUT
+          when "file"
+            case sink["filename"]
+              when STDOUT
+                ::Logger.new(STDOUT)
+              when STDERR
+                ::Logger.new(STDERR)
+              else
+                ::Logger.new(sink["filename"], sink["shift_age"] || 0, sink["shift_size"] || 1048576)
+            end
+          when "stdout"
             ::Logger.new(STDOUT)
-          when STDERR
+          when "stderr"
             ::Logger.new(STDERR)
-          else
-            ::Logger.new(sink["filename"], sink["shift_age"] || 0, sink["shift_size"] || 1048576)
-          end
-        when "stdout"
-          ::Logger.new(STDOUT)
-        when "stderr"
-          ::Logger.new(STDERR)
-        when "syslog"
-          # Termite::SyslogLogger.new(sink["transport"])
-        when "hastur"
-          # Write this
+          when "syslog"
+            setup_syslog_logger(options)
+          when "hastur"
+            # Write this
         end
-
         sink["logger"] = cur_logger
       end
       @loggers = sinks
@@ -214,11 +211,12 @@ module Termite
       ret
     end
 
-    def setup_syslog_vars(options)
+    def setup_syslog_logger(options)
       # For UDP socket
       @server_addr = options[:address] || "0.0.0.0"
       @server_port = options[:port] ? options[:port].to_i : 514
       @socket = find_or_create_socket
+      # SyslogLogger.new(@socket, @server_addr, @server_port)
     end
 
     def find_or_create_socket
@@ -265,15 +263,16 @@ module Termite
       end
 
       time = Time.now
+      full_message = clean(raw_message || block.call)
+
       tid = Ecology.thread_id(::Thread.current)
       day = time.strftime("%b %d").sub(/0(\d)/, ' \\1')
       time_of_day = time.strftime("%T")
       hostname = Socket.gethostname
+
       # Convert Ruby log level to syslog severity
       tag = Syslog::LOG_LOCAL6 + SYSLOG_SEVERITY_MAP[LEVEL_SYSLOG_MAP[severity]]
-
       syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: [#{tid}] "
-      full_message = clean(raw_message || block.call)
 
       # ruby_severity is the Ruby Logger severity as a symbol
       ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
@@ -287,7 +286,7 @@ module Termite
           # Didn't work.  Try built-in Ruby syslog
           require "syslog"
           Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
-            s.error("UDP syslog failed!  Falling back to libc syslog!") rescue nil
+            s.error("Socket syslog failed!  Falling back to libc syslog!") rescue nil
             s.send(LEVEL_SYSLOG_MAP[severity], "#{line} #{data}") rescue nil
           end
         end
@@ -297,11 +296,11 @@ module Termite
       ruby_logger_severity = RUBY_LOGGER_SEV_LABELS[severity]
       ruby_logger_message = "%s, [%s#%d] %5s -- %s: %s" % [ruby_logger_severity[0..0],
           (time.strftime("%Y-%m-%dT%H:%M:%S.") << "%06d " % time.usec),
-          $$, ruby_logger_severity, "", raw_message]
+          $$, ruby_logger_severity, "", full_message]
 
       @loggers.each do |sink|
         next if (sink["min_level"] && severity < sink["min_level"]) || (sink["max_level"] && severity > sink["max_level"])
-        message = sink["logger_prefix?"] ? ruby_logger_message : raw_message
+        message = sink["logger_prefix?"] ? ruby_logger_message : full_message
         sink["logger"] << message rescue nil
       end
 

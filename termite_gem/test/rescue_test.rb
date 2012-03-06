@@ -15,7 +15,7 @@ class RescueTest < Scope::TestCase
       # Termite should fall back to trying Ruby Syslog...
       syslog_mock = mock("Syslog connection")
       Syslog.expects(:open).yields(syslog_mock)
-      syslog_mock.expects(:error).with("UDP syslog failed!  Falling back to libc syslog!")
+      syslog_mock.expects(:error).with("Socket syslog failed!  Falling back to libc syslog!")
       syslog_mock.expects(:crit).raises(StandardError, "You suck even more than that!")
 
       # And it should still try to write to a file logger - this is now just an extra logger

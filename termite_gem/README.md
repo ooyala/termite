@@ -129,8 +129,7 @@ An Ecology is a JSON file of roughly this structure:
         "shift_size": 1024000
       },
       {
-        "type": "syslog",
-        "transport": "UDP"
+        "type": "syslog"
       },
       {
         "type": "hastur",
