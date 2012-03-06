@@ -18,17 +18,21 @@ ECOLOGY_CONTENTS
 
     context "with a default termite logger" do
       setup do
+        @stdout_logger = mock("STDOUT logger")
+        ::Logger.expects(:new).with(STDOUT).returns(@stdout_logger)
+        @stderr_logger = mock("STDERR logger")
+        ::Logger.expects(:new).with(STDERR).returns(@stderr_logger)
         @logger = Termite::Logger.new
       end
 
       should "log fatal errors to STDERR" do
-        expect_console_add(STDERR, 2, 'oh no!', :application => "MyApp", :method => :print, :extra_args => [])
+        @stderr_logger.expects(:<<).with("oh no!")
         STDOUT.expects(:puts).never
         @logger.fatal("oh no!")
       end
 
       should "log warnings to STDOUT" do
-        expect_console_add(STDOUT, 4, 'oh no!', :application => "MyApp", :method => :print, :extra_args => [])
+        @stdout_logger.expects(:<<).with("oh no!")
         STDERR.expects(:puts).never
         @logger.warn("oh no!")
       end

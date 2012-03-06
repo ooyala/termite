@@ -53,6 +53,7 @@ ECOLOGY_CONTENTS
     should "override parameters passed to Termite Logger" do
       log_mock = mock("Ruby Logger")
       ::Logger.expects(:new).with("/tmp/bobo.txt", 10, 1024000).returns(log_mock)
+      ::Logger.expects(:new).with("/var/lib/sam.log", "daily", 1048576).returns(log_mock)
       Termite::Logger.new("/var/lib/sam.log", "daily")
     end
   end

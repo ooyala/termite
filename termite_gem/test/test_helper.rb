@@ -43,6 +43,6 @@ class Scope::TestCase
 
     options[:method] ||= :send
     options[:extra_args] ||= [0, "0.0.0.0", 514]
-    socket.expects(options[:method]).with(message + "\n", *options[:extra_args])
+    socket.expects(:<<).with(message + "\n", *options[:extra_args])
   end
 end

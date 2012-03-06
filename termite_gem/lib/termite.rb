@@ -76,7 +76,6 @@ module Termite
     attr_accessor :level
     attr_reader :stdout_level
     attr_reader :stderr_level
-    attr_reader :file_logger
 
     def initialize(logdev = nil, shift_age = nil, shift_size = nil, options = {})
       if logdev.is_a?(Hash)
@@ -84,16 +83,13 @@ module Termite
         logdev = nil
       end
 
-      Ecology.read
-      read_ecology_data(options)
-
-      # Use the parameter values if not set in ecology
       @extra_loggers ||= []
       @log_filename ||= logdev
       @shift_age ||= shift_age
       @shift_size ||= shift_size
 
-      setup_file_logger if @log_filename
+      Ecology.read
+      read_ecology_data(options)
 
       setup_syslog_vars(options)
     end
@@ -104,55 +100,115 @@ module Termite
       @application = Ecology.application
       @default_component = options[:component] || Ecology.property("logging::default_component") ||
         options[:default_component]
-
       # @console_print defaults to "yes", but can be nil if "no", "off" or "0" is specified
       @console_print = Ecology.property("logging::console_print") || options[:console_print] || "yes"
       @console_print = nil if ["no", "off", "0"].include?(@console_print)
-
-      Ecology.property("logging::sinks") ? read_sinked_ecology(options) : read_unsinked_ecology(options)
-
       @default_fields = Ecology.property("logging::extra_json_fields") || options[:extra_json_fields] || {}
-
+      @use_logger_prefix = Ecology.property("logging::use_logger_prefix") || options[:use_logger_prefix]
+      @level = Ecology.property("logging::level") || options[:level]
+      @level = string_to_severity(@level) if @level
       @level ||= ::Logger::DEBUG
-      @stdout_level ||= ::Logger::INFO
-      @stderr_level ||= ::Logger::ERROR
-    end
 
-    def read_sinked_ecology(options)
-
+      sinks = Ecology.property("logging::sinks")
+      sinks ? instantiate_sinks(sinks, options) : read_unsinked_ecology(options)
     end
 
     # This is the codepath for ecology files that do not have a 'sinks' section defined
     def read_unsinked_ecology(options)
-      @log_filename = Ecology.property("logging::filename", :as => :path) || options[:logging_filename]
-      @shift_age = Ecology.property("logging::shift_age") || options[:shift_age]
-      @shift_size = Ecology.property("logging::shift_size") || options[:shift_size]
-      @level = Ecology.property("logging::level") || options[:level]
-      @level = string_to_severity(@level) if @level
-      @stderr_level = Ecology.property("logging::stderr_level") || options[:stderr_level]
-      @stderr_level = string_to_severity(@stderr_level) if @stderr_level
-      @stdout_level = Ecology.property("logging::stdout_level") || options[:stdout_level]
-      @stdout_level = string_to_severity(@stdout_level) if @stdout_level
-      @stderr_logger_prefix = Ecology.property("logging::stderr_logger_prefix") ||
-        options[:stderr_logger_prefix]
-      @stdout_logger_prefix = Ecology.property("logging::stdout_logger_prefix") ||
-        options[:stdout_logger_prefix]
-      @file_logger_prefix = Ecology.property("logging::use_logger_prefix") || options[:use_logger_prefix]
+      sinks = []
+      # File Sink
+      file_sink = {"type" => "file", "min_level" => @level}
+      file_sink["filename"] = Ecology.property("logging::filename", :as => :path) ||
+        options[:logging_filename]
+      file_sink["shift_age"] = Ecology.property("logging::shift_age") || options[:shift_age]
+      file_sink["shift_size"] = Ecology.property("logging::shift_size") || options[:shift_size]
+      file_sink["logger_prefix?"] = @use_logger_prefix if @use_logger_prefix
+      sinks << file_sink if file_sink["filename"]
 
+      # STDERR Sink
+      stderr_sink = {"type" => "file", "filename" => STDERR}
+      @stderr_level = Ecology.property("logging::stderr_level") || options[:stderr_level] || ::Logger::ERROR
+      stderr_sink["min_level"] = string_to_severity(@stderr_level) if @stderr_level
+      if @use_logger_prefix
+        stderr_sink["logger_prefix?"] = @use_logger_prefix
+      else
+        stderr_prefix = Ecology.property("logging::stderr_logger_prefix") || options[:stderr_logger_prefix]
+        stderr_sink["logger_prefix?"] = stderr_prefix if stderr_prefix
+      end
+      sinks << stderr_sink if @console_print
+
+      # STDOUT Sink
+      stdout_sink = {"type" => "file", "filename" => STDOUT}
+      @stdout_level = Ecology.property("logging::stdout_level") || options[:stdout_level] || ::Logger::INFO
+      stdout_sink["min_level"] = string_to_severity(@stdout_level) if @stdout_level
+      stdout_sink["max_level"] = string_to_severity(@stderr_level) - 1
+      if @use_logger_prefix
+        stdout_sink["logger_prefix?"] = @use_logger_prefix
+      else
+        stdout_prefix = Ecology.property("logging::stdout_logger_prefix") || options[:stdout_logger_prefix]
+        stdout_sink["logger_prefix?"] = stdout_prefix if stdout_prefix
+      end
+      sinks << stdout_sink if @console_print
+
+      # Syslog Sink
+      syslog_sink = {"type" => "syslog"}
+      transport = Ecology.property("logging::transport") || options[:transport]
+      syslog_sink["transport"] = transport ? transport : "UDP"
+      sinks << syslog_sink
+
+
+      # Set up sinks
+      instantiate_sinks(sinks, options)
     end
 
+    # For each sink, and to loggers
+    def instantiate_sinks(sinks, options)
+      sinks = sinks.dup
+
+      sinks.each do |sink|
+        cur_logger = case sink["type"]
+        when "file"
+          case sink["filename"]
+          when STDOUT
+            ::Logger.new(STDOUT)
+          when STDERR
+            ::Logger.new(STDERR)
+          else
+            ::Logger.new(sink["filename"], sink["shift_age"] || 0, sink["shift_size"] || 1048576)
+          end
+        when "stdout"
+          ::Logger.new(STDOUT)
+        when "stderr"
+          ::Logger.new(STDERR)
+        when "syslog"
+          # Termite::SyslogLogger.new(sink["transport"])
+        when "hastur"
+          # Write this
+        end
+
+        sink["logger"] = cur_logger
+      end
+      @extra_loggers = sinks
+
+      # Constructor params logger
+      add_logger(::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576), "type" => "file",
+        "filename" => @log_filename,
+        "shift_age" => @shift_age || 0,
+        "shift_size" => @shift_size || 1048576,
+        "logger_prefix?" => @use_logger_prefix,
+        "min_level" => @level
+      ) if @log_filename
+    end
+
+
     def string_to_severity(str)
+      return str if str.is_a? Numeric
       orig_string = str
       str = str.strip.downcase
       return str.to_i if str =~ /\d+/
       ret = LOGGER_LEVEL_MAP[str.to_sym]
       raise "Unknown logger severity #{orig_string}" unless ret
       ret
-    end
-
-    def setup_file_logger
-      @file_logger = ::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576)
-      add_logger @file_logger
     end
 
     def setup_syslog_vars(options)
@@ -170,8 +226,13 @@ module Termite
 
     public
 
-    def add_logger(logger)
-      @extra_loggers << logger
+    def add_logger(logger, options={})
+      if logger.is_a? Hash
+        @extra_loggers << logger
+      else
+        options["logger"] = logger
+        @extra_loggers << options
+      end
     end
 
     def socket
@@ -200,8 +261,9 @@ module Termite
         raise "Unknown data object passed as JSON!"
       end
 
-      tid = Ecology.thread_id(::Thread.current)
+      # add_logger SysLogger...
       time = Time.now
+      tid = Ecology.thread_id(::Thread.current)
       day = time.strftime("%b %d").sub(/0(\d)/, ' \\1')
       time_of_day = time.strftime("%T")
       hostname = Socket.gethostname
@@ -234,19 +296,10 @@ module Termite
           (time.strftime("%Y-%m-%dT%H:%M:%S.") << "%06d " % time.usec),
           $$, ruby_logger_severity, "", raw_message]
 
-      # Ruby puts does two writes: one of the string passed in and one of a newline.  This is unacceptable for
-      # logging in a multi-process environment (e.g., unicorn), as these writes can be interlaced.
-      # So instead, print a single string with explicit newline.
-      if @console_print && severity >= @stderr_level
-        STDERR.print((@stderr_logger_prefix || @use_logger_prefix ? ruby_logger_message : raw_message) + "\n")
-        STDERR.flush # Only needed if STDERR has been reopened without auto-flush
-      elsif @console_print && severity >= @stdout_level
-        STDOUT.print((@stdout_logger_prefix || @use_logger_prefix ? ruby_logger_message : raw_message) + "\n")
-        STDOUT.flush
-      end
-
-      @extra_loggers.each do |logger|
-        logger.send(ruby_severity, @use_logger_prefix ? ruby_logger_message : raw_message) rescue nil
+      @extra_loggers.each do |sink|
+        next if (sink["min_level"] && severity < sink["min_level"]) || (sink["max_level"] && severity > sink["max_level"])
+        message = sink["logger_prefix?"] ? ruby_logger_message : raw_message
+        sink["logger"] << message rescue nil
       end
 
       true
@@ -324,10 +377,6 @@ module Termite
 
     def stderr_level
       2
-    end
-
-    def file_logger
-      nil
     end
   end
 end

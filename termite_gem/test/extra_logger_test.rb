@@ -13,13 +13,14 @@ class TermiteExtraLoggerTest < Scope::TestCase
         @logger.level = Logger::DEBUG
         @logger.socket.expects(:send)
         @mock_logger_1 = mock()
+        @mock_logger_2 = mock()
         @logger.add_logger(@mock_logger_1)
         @logger.add_logger(@mock_logger_2)
       end
 
-      should "correctly send logs to Syslog" do
-        @mock_logger_1.expects(:fatal)
-        @mock_logger_2.expects(:fatal)
+      should "correctly send logs to additional loggers" do
+        @mock_logger_1.expects(:<<).with("foo!")
+        @mock_logger_2.expects(:<<).with("foo!")
         @logger.add(Logger::FATAL, "foo!", {})
       end
     end

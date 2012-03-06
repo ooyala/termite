@@ -109,32 +109,38 @@ An Ecology is a JSON file of roughly this structure:
       "app_group": "SuperSpiffyGroup",
       "precedence": 7
     },
-    "sinks": {
-      "stdout": {
+    "sinks": [
+      {
+        "type": "stdout",
         "color": "green",
-        "severity": "debug"
+        "min_level": "debug",
+        "max_level": "warning"
       },
-      "stderr": {
+      {
+        "type": "stderr",
         "color": "red",
-        "severity": "error"
+        "min_level": "error"
       },
-      "file": {
+      {
+        "type": "file",
         "filename": "/tmp/bobo.txt",
-        "severity": "warning",
+        "min_level": "warning",
         "shift_age": 10,
         "shift_size": 1024000
       },
-      "syslog": {
+      {
+        "type": "syslog",
         "transport": "UDP"
       },
-      "hastur": {
+      {
+        "type": "hastur",
         "udp_port": 9199,
         "labels": {
           "app_flavor": "vanilla",
           "track_for": "jbhat"
         }
       }
-    }
+    ]
   }
 }
 

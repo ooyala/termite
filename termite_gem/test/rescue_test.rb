@@ -18,13 +18,13 @@ class RescueTest < Scope::TestCase
       syslog_mock.expects(:error).with("UDP syslog failed!  Falling back to libc syslog!")
       syslog_mock.expects(:crit).raises(StandardError, "You suck even more than that!")
 
-      # And it should still try to write to a file logger
-      @logger.file_logger.expects(:fatal).raises(StandardError, "You suck lots!")
+      # And it should still try to write to a file logger - this is now just an extra logger
+      # @logger.file_logger.expects(:fatal).raises(StandardError, "You suck lots!")
 
       extra_logger = mock("Additional logger")
       @logger.add_logger(extra_logger)
       # And it should try to write to any extra loggers
-      extra_logger.expects(:fatal).raises(StandardError, "You suck constantly!")
+      extra_logger.expects(:<<).raises(StandardError, "You suck constantly!")
 
       # And yet, nothing should be raised to the outside world
       begin
