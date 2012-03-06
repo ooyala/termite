@@ -14,7 +14,7 @@ module Termite
     ##
     # Maps Logger severities to syslog(3) severities.
 
-    LOGGER_MAP = {
+    LOGGER_SYSLOG_MAP = {
       :unknown => :alert,
       :fatal   => :crit,
       :error   => :err,
@@ -31,22 +31,25 @@ module Termite
 
     LOGGER_LEVEL_MAP = {}
 
-    LOGGER_MAP.each_key do |key|
+    LOGGER_SYSLOG_MAP.each_key do |key|
       LOGGER_LEVEL_MAP[key] = ::Logger.const_get key.to_s.upcase
     end
 
     ##
     # Maps Logger numerical log level values to syslog log levels.
 
-    LEVEL_LOGGER_MAP = {}
+    LEVEL_SYSLOG_MAP = {}
 
     LOGGER_LEVEL_MAP.invert.each do |level, severity|
-      LEVEL_LOGGER_MAP[level] = LOGGER_MAP[severity]
+      LEVEL_SYSLOG_MAP[level] = LOGGER_SYSLOG_MAP[severity]
     end
+
+    ##
+    # Maps Syslog log levels to their severity levels
 
     SYSLOG_SEVERITY_MAP = {}
 
-    LOGGER_MAP.values.each do |syslog_severity|
+    LOGGER_SYSLOG_MAP.values.each do |syslog_severity|
       SYSLOG_SEVERITY_MAP[syslog_severity] = ::Syslog.const_get("LOG_" + syslog_severity.to_s.upcase)
     end
 
@@ -66,7 +69,7 @@ module Termite
       EOM
     end
 
-    LOGGER_MAP.each_key do |level|
+    LOGGER_SYSLOG_MAP.each_key do |level|
       make_methods level
     end
 
@@ -83,7 +86,7 @@ module Termite
         logdev = nil
       end
 
-      @extra_loggers ||= []
+      @loggers ||= []
       @log_filename ||= logdev
       @shift_age ||= shift_age
       @shift_size ||= shift_size
@@ -188,7 +191,7 @@ module Termite
 
         sink["logger"] = cur_logger
       end
-      @extra_loggers = sinks
+      @loggers = sinks
 
       # Constructor params logger
       add_logger(::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576), "type" => "file",
@@ -228,10 +231,10 @@ module Termite
 
     def add_logger(logger, options={})
       if logger.is_a? Hash
-        @extra_loggers << logger
+        @loggers << logger
       else
         options["logger"] = logger
-        @extra_loggers << options
+        @loggers << options
       end
     end
 
@@ -261,13 +264,13 @@ module Termite
         raise "Unknown data object passed as JSON!"
       end
 
-      # add_logger SysLogger...
       time = Time.now
       tid = Ecology.thread_id(::Thread.current)
       day = time.strftime("%b %d").sub(/0(\d)/, ' \\1')
       time_of_day = time.strftime("%T")
       hostname = Socket.gethostname
-      tag = Syslog::LOG_LOCAL6 + SYSLOG_SEVERITY_MAP[LEVEL_LOGGER_MAP[severity]]
+      # Convert Ruby log level to syslog severity
+      tag = Syslog::LOG_LOCAL6 + SYSLOG_SEVERITY_MAP[LEVEL_SYSLOG_MAP[severity]]
 
       syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: [#{tid}] "
       full_message = clean(raw_message || block.call)
@@ -285,7 +288,7 @@ module Termite
           require "syslog"
           Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
             s.error("UDP syslog failed!  Falling back to libc syslog!") rescue nil
-            s.send(LEVEL_LOGGER_MAP[severity], "#{line} #{data}") rescue nil
+            s.send(LEVEL_SYSLOG_MAP[severity], "#{line} #{data}") rescue nil
           end
         end
       end
@@ -296,7 +299,7 @@ module Termite
           (time.strftime("%Y-%m-%dT%H:%M:%S.") << "%06d " % time.usec),
           $$, ruby_logger_severity, "", raw_message]
 
-      @extra_loggers.each do |sink|
+      @loggers.each do |sink|
         next if (sink["min_level"] && severity < sink["min_level"]) || (sink["max_level"] && severity > sink["max_level"])
         message = sink["logger_prefix?"] ? ruby_logger_message : raw_message
         sink["logger"] << message rescue nil
@@ -353,7 +356,7 @@ module Termite
   end
 
   def FakeLogger
-    Termite::LOGGER_MAP.each_key do |key|
+    Termite::LOGGER_SYSLOG_MAP.each_key do |key|
       define_method(LOGGER_LEVEL_MAP[key]) do
         # Do nothing
       end
