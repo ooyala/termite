@@ -1,4 +1,5 @@
 require "rubygems"
+require "termite/syslog_logger"
 require "termite/version"
 
 require "ecology"
@@ -216,7 +217,7 @@ module Termite
       @server_addr = options[:address] || "0.0.0.0"
       @server_port = options[:port] ? options[:port].to_i : 514
       @socket = find_or_create_socket
-      # SyslogLogger.new(@socket, @server_addr, @server_port)
+      SyslogLogger.new(@socket, @server_addr, @server_port)
     end
 
     def find_or_create_socket
@@ -265,33 +266,6 @@ module Termite
       time = Time.now
       full_message = clean(raw_message || block.call)
 
-      tid = Ecology.thread_id(::Thread.current)
-      day = time.strftime("%b %d").sub(/0(\d)/, ' \\1')
-      time_of_day = time.strftime("%T")
-      hostname = Socket.gethostname
-
-      # Convert Ruby log level to syslog severity
-      tag = Syslog::LOG_LOCAL6 + SYSLOG_SEVERITY_MAP[LEVEL_SYSLOG_MAP[severity]]
-      syslog_string = "<#{tag}>#{day} #{time_of_day} #{hostname} #{application} [#{Process.pid}]: [#{tid}] "
-
-      # ruby_severity is the Ruby Logger severity as a symbol
-      ruby_severity = LOGGER_LEVEL_MAP.invert[severity]
-
-      full_message.split("\n").each do |line|
-        syslog_message = syslog_string + "#{line} #{data}"
-
-        begin
-          @socket.send(syslog_message, 0, @server_addr, @server_port)
-        rescue Exception
-          # Didn't work.  Try built-in Ruby syslog
-          require "syslog"
-          Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
-            s.error("Socket syslog failed!  Falling back to libc syslog!") rescue nil
-            s.send(LEVEL_SYSLOG_MAP[severity], "#{line} #{data}") rescue nil
-          end
-        end
-      end
-
       # Lifted from Logger::Formatter
       ruby_logger_severity = RUBY_LOGGER_SEV_LABELS[severity]
       ruby_logger_message = "%s, [%s#%d] %5s -- %s: %s" % [ruby_logger_severity[0..0],
@@ -299,9 +273,16 @@ module Termite
           $$, ruby_logger_severity, "", full_message]
 
       @loggers.each do |sink|
-        next if (sink["min_level"] && severity < sink["min_level"]) || (sink["max_level"] && severity > sink["max_level"])
-        message = sink["logger_prefix?"] ? ruby_logger_message : full_message
-        sink["logger"] << message rescue nil
+        next if (sink["min_level"] && severity < sink["min_level"]) ||
+          (sink["max_level"] && severity > sink["max_level"]) ||
+          sink["logger"].nil?
+        full_message = ruby_logger_message if sink["logger_prefix?"]
+        full_message += " #{data}" if sink["logger_data?"]
+        if sink["logger"].respond_to?(:send_message)
+          sink["logger"].send_message(severity, full_message, application, time, data)
+        else
+          sink["logger"] << full_message
+        end rescue nil
       end
 
       true
