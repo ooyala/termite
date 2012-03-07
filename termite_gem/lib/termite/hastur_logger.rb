@@ -1,7 +1,8 @@
 module Termite
   class HasturLogger
-    def initialize(socket, addr, port)
+    def initialize(socket, addr, port, labels)
       @socket, @addr, @port = socket, addr, port
+      @labels = labels ? labels : {}
     end
 
     def to_usec(time)
@@ -30,9 +31,7 @@ module Termite
         :hostname => hostname
       }
 
-      message[:labels] = labels.merge data
-
-      puts m
+      message[:labels] = labels.merge(data).merge(@labels)
 
       @socket.send MultiJson.encode(message), 0, @addr, @port
     end

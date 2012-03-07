@@ -231,9 +231,9 @@ module Termite
 
     def setup_hastur_logger(sink, options)
       @hastur_addr = options[:hastur_address] || "127.0.0.1"
-      @hastur_port = options[:hastur_port] || 8125
+      @hastur_port = sink["udp_port"] || options[:hastur_port] || 8125
       @hastur_socket = find_or_create_socket(@hastur_addr, @hastur_port)
-      HasturLogger.new(@hastur_socket, @hastur_addr, @hastur_port)
+      HasturLogger.new(@hastur_socket, @hastur_addr, @hastur_port, sink["labels"])
     end
 
     def find_or_create_socket(addr, port)
