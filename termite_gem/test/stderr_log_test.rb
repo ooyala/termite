@@ -27,13 +27,13 @@ ECOLOGY_CONTENTS
       end
 
       should "log fatal errors to STDERR with default color" do
-        @stderr_logger.expects(:<<).with("oh no!".color(:red))
+        @stderr_logger.expects(:<<).with("oh no!\n".color(:red))
         STDOUT.expects(:puts).never
         @logger.fatal("oh no!")
       end
 
       should "log warnings to STDOUT with overridden color" do
-        @stdout_logger.expects(:<<).with("oh no!".color(:green))
+        @stdout_logger.expects(:<<).with("oh no!\n".color(:green))
         STDERR.expects(:puts).never
         @logger.warn("oh no!")
       end
