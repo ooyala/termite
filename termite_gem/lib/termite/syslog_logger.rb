@@ -1,6 +1,6 @@
 module Termite
   class SyslogLogger
-    def initialize(socket, server_addr, server_port)
+    def setup_udp(socket, server_addr, server_port)
       @socket, @server_addr, @server_port = socket, server_addr, server_port
     end
 
@@ -18,20 +18,31 @@ module Termite
       ruby_severity = Logger::LOGGER_LEVEL_MAP.invert[severity]
 
       full_message.split("\n").each do |line|
-        syslog_message = syslog_string + "#{line} #{data}"
-
-        begin
-          @socket.send(syslog_message, 0, @server_addr, @server_port)
-        rescue Exception
-          # Didn't work.  Try built-in Ruby syslog
-          require "syslog"
-          Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
-            s.error("Socket syslog failed!  Falling back to libc syslog!") rescue nil
-            s.send(Logger::LEVEL_SYSLOG_MAP[severity], "#{line} #{data}") rescue nil
-          end
-        end
+        syslog_message = "#{line} #{data}"
+        @socket ? send_udp(severity, syslog_string, syslog_message, application) :
+                  send_libc(severity, syslog_message, application)
       end
     end
 
+    def send_udp(severity, syslog_string, syslog_message, application)
+      begin
+        @socket.send(syslog_string + syslog_message, 0, @server_addr, @server_port)
+      rescue Exception
+        # Didn't work.  Try built-in Ruby syslog
+        require "syslog"
+        Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
+          s.error("Socket syslog failed!  Falling back to libc syslog!") rescue nil
+          s.send(Logger::LEVEL_SYSLOG_MAP[severity], syslog_message) rescue nil
+        end
+      end
+
+    end
+
+    def send_libc(severity, syslog_message, application)
+      require "syslog"
+      Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
+        s.send(Logger::LEVEL_SYSLOG_MAP[severity], syslog_message) rescue nil
+      end
+    end
   end
 end

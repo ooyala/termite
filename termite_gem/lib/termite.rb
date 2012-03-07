@@ -185,9 +185,9 @@ module Termite
             ::Logger.new(STDERR)
           when "syslog"
             syslog = true
-            setup_syslog_logger(options)
+            setup_syslog_logger(sink, options)
           when "hastur"
-            setup_hastur_loggger(options)
+            setup_hastur_logger(sink, options)
         end
         sink["logger"] = cur_logger
       end
@@ -217,15 +217,19 @@ module Termite
       ret
     end
 
-    def setup_syslog_logger(options)
-      # For UDP socket
-      @server_addr = options[:address] || "0.0.0.0"
-      @server_port = options[:port] ? options[:port].to_i : 514
-      @socket = find_or_create_socket(@server_addr, @server_port)
-      SyslogLogger.new(@socket, @server_addr, @server_port)
+    def setup_syslog_logger(sink, options)
+      logger = SyslogLogger.new
+      if sink["transport"].nil? || sink["transport"] != "syscall"
+        # For UDP socket
+        @server_addr = options[:address] || "0.0.0.0"
+        @server_port = options[:port] ? options[:port].to_i : 514
+        @socket = find_or_create_socket(@server_addr, @server_port)
+        logger.setup_udp(@socket, @server_addr, @server_port)
+      end
+      logger
     end
 
-    def setup_hastur_logger(options)
+    def setup_hastur_logger(sink, options)
       @hastur_addr = options[:hastur_address] || "127.0.0.1"
       @hastur_port = options[:hastur_port] || 8125
       @hastur_socket = find_or_create_socket(@hastur_addr, @hastur_port)
