@@ -2,7 +2,7 @@ module Termite
   class HasturLogger
     def initialize(socket, addr, port, labels)
       @socket, @addr, @port = socket, addr, port
-      @labels = labels ? labels : {}
+      @labels = labels || {}
     end
 
     def to_usec(time)

@@ -5,6 +5,7 @@ require "termite/version"
 
 require "ecology"
 require "multi_json"
+require "rainbow"
 
 require "thread"
 require "syslog"
@@ -257,6 +258,8 @@ module Termite
       @socket
     end
 
+    COLORS = [:black, :red, :green, :yellow, :blue, :magenta, :cyan, :white, :default].map(&:to_s)
+
     def raw_add(severity, raw_message = nil, data = nil, options = {}, &block)
       # Severity is a numerical severity using Ruby Logger's scale
       severity ||= ::Logger::UNKNOWN
@@ -297,6 +300,10 @@ module Termite
         if sink["logger"].respond_to?(:send_message)
           sink["logger"].send_message(severity, full_message, application, time, data)
         else
+          if sink["color"]
+            color = COLORS.include? sink["color"] ? sink["color"].to_sym : sink["color"]
+            full_message = full_message.color(color)
+          end
           sink["logger"] << full_message
         end rescue nil
       end
