@@ -1,4 +1,5 @@
 require "rubygems"
+require "termite/hastur_logger"
 require "termite/syslog_logger"
 require "termite/version"
 
@@ -28,7 +29,7 @@ module Termite
     RUBY_LOGGER_SEV_LABELS = ::Logger::SEV_LABEL
 
     ##
-    # Maps Ruby Logger log levels to their values so we can silence.
+    # Maps Ruby Logger log levels to their numerical values.
 
     LOGGER_LEVEL_MAP = {}
 
@@ -37,7 +38,7 @@ module Termite
     end
 
     ##
-    # Maps Logger numerical log level values to syslog log levels.
+    # Maps Logger numerical log level values to syslog level names.
 
     LEVEL_SYSLOG_MAP = {}
 
@@ -46,7 +47,7 @@ module Termite
     end
 
     ##
-    # Maps Syslog log levels to their severity levels
+    # Maps Syslog level names to their numerical severity levels
 
     SYSLOG_SEVERITY_MAP = {}
 
@@ -186,7 +187,7 @@ module Termite
             syslog = true
             setup_syslog_logger(options)
           when "hastur"
-            # Write this
+            setup_hastur_loggger(options)
         end
         sink["logger"] = cur_logger
       end
@@ -220,13 +221,20 @@ module Termite
       # For UDP socket
       @server_addr = options[:address] || "0.0.0.0"
       @server_port = options[:port] ? options[:port].to_i : 514
-      @socket = find_or_create_socket
+      @socket = find_or_create_socket(@server_addr, @server_port)
       SyslogLogger.new(@socket, @server_addr, @server_port)
     end
 
-    def find_or_create_socket
+    def setup_hastur_logger(options)
+      @hastur_addr = options[:hastur_address] || "127.0.0.1"
+      @hastur_port = options[:hastur_port] || 8125
+      @hastur_socket = find_or_create_socket(@hastur_addr, @hastur_port)
+      HasturLogger.new(@hastur_socket, @hastur_addr, @hastur_port)
+    end
+
+    def find_or_create_socket(addr, port)
       @@sockets ||= {}
-      key = "#{@server_addr}:#{@server_port}"
+      key = "#{addr}:#{port}"
       @@sockets[key] ||= UDPSocket.new
     end
 
