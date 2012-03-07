@@ -23,7 +23,8 @@
       {
         "type": "stderr",
         "color": "magenta",
-        "min_level": "fatal"
+        "min_level": "fatal",
+        "logger_prefix?": true
       },
       {
         "type": "syslog",

@@ -5,16 +5,16 @@ Ecology.read("./example.ecology")
 logger = Termite::Logger.new
 
 while true
-  logger.debug("a")
+  logger.debug("debug message!")
   sleep 0.1
-  logger.info("b")
+  logger.info("info message!")
   sleep 0.1
-  logger.warn("c")
+  logger.warn("warning message!")
   sleep 0.1
-  logger.error("d")
+  logger.error("error message!")
   sleep 0.1
-  logger.fatal("e")
+  logger.fatal("fatal message!")
   sleep 0.1
-  logger.unknown("f")
+  logger.unknown("Unknown priority message!")
   sleep 0.1
 end
