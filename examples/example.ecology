@@ -1,0 +1,34 @@
+{
+  "application": "MyApp",
+  "logging": {
+    "default_component": "SplodgingLib",
+    "extra_json_fields": {
+      "app_group": "SuperSpiffyGroup",
+      "precedence": 7
+    },
+    "sinks": [
+      {
+        "type": "stdout",
+        "color": "green",
+        "min_level": "debug",
+        "max_level": "info",
+        "newline?" : false
+      },
+      {
+        "type": "stdout",
+        "color": "red",
+        "min_level": "warn",
+        "max_level": "error"
+      },
+      {
+        "type": "stderr",
+        "color": "magenta",
+        "min_level": "fatal"
+      },
+      {
+        "type": "syslog",
+        "transport": "UDP"
+      }
+    ]
+  }
+}
