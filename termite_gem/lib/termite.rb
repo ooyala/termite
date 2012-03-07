@@ -170,7 +170,15 @@ module Termite
     def instantiate_sinks(sinks, options)
       sinks = sinks.dup
       syslog = false
+      # Maximum Level
+      min_level = 5
       sinks.each do |sink|
+        # Set min level if lower than current (@level if not defined)
+        if sink["min_level"]
+          sink_level = string_to_severity(sink["min_level"])
+          min_level = sink_level if sink_level < min_level
+        else min_level = @level
+        end
         cur_logger = case sink["type"]
           when "file"
             sink["newline?"] = true unless sink.has_key? "newline?"
@@ -199,18 +207,25 @@ module Termite
       @loggers = sinks
 
       # Create syslog logger if not defined in sinks
-      add_logger(setup_syslog_logger(options), "type" => "syslog") unless syslog
+      unless syslog
+        min_level = @level
+        add_logger(setup_syslog_logger(options), "type" => "syslog", "min_level" => min_level)
+      end
 
       # Constructor params logger
-      add_logger(::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576), "type" => "file",
-        "filename" => @log_filename,
-        "shift_age" => @shift_age || 0,
-        "shift_size" => @shift_size || 1048576,
-        "logger_prefix?" => @use_logger_prefix,
-        "min_level" => @level
-      ) if @log_filename
+      if @log_filename
+        min_level = @level
+        add_logger(::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576), "type" => "file",
+          "filename" => @log_filename,
+          "shift_age" => @shift_age || 0,
+          "shift_size" => @shift_size || 1048576,
+          "logger_prefix?" => @use_logger_prefix,
+          "min_level" => @level
+        )
+      end
+      # If the min level of all loggers is greater than @level, use that
+      @level = [@level, min_level].max
     end
-
 
     def string_to_severity(str)
       return str if str.is_a? Numeric
