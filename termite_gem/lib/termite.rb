@@ -139,6 +139,7 @@ module Termite
         stderr_prefix = Ecology.property("logging::stderr_logger_prefix") || options[:stderr_logger_prefix]
         stderr_sink["logger_prefix?"] = stderr_prefix if stderr_prefix
       end
+      stderr_sink["color"] = Ecology.property("logging::stderr_color") || options[:stderr_color] || "red"
       sinks << stderr_sink if @console_print
 
       # STDOUT Sink
@@ -152,6 +153,7 @@ module Termite
         stdout_prefix = Ecology.property("logging::stdout_logger_prefix") || options[:stdout_logger_prefix]
         stdout_sink["logger_prefix?"] = stdout_prefix if stdout_prefix
       end
+      stdout_sink["color"] = Ecology.property("logging:stdout_color") || options[:stdout_color] || "blue"
       sinks << stdout_sink if @console_print
 
       # Syslog Sink
@@ -258,7 +260,7 @@ module Termite
       @socket
     end
 
-    COLORS = [:black, :red, :green, :yellow, :blue, :magenta, :cyan, :white, :default].map(&:to_s)
+    COLORS = [:black, :red, :green, :yellow, :blue, :magenta, :cyan, :white, :default]
 
     def raw_add(severity, raw_message = nil, data = nil, options = {}, &block)
       # Severity is a numerical severity using Ruby Logger's scale
@@ -295,16 +297,16 @@ module Termite
         next if (sink["min_level"] && severity < sink["min_level"]) ||
           (sink["max_level"] && severity > sink["max_level"]) ||
           sink["logger"].nil?
-        full_message = ruby_logger_message if sink["logger_prefix?"]
-        full_message += " #{data}" if sink["logger_data?"]
+        message = sink["logger_prefix?"] ? ruby_logger_message : full_message
+        message += " #{data}" if sink["logger_data?"]
         if sink["logger"].respond_to?(:send_message)
-          sink["logger"].send_message(severity, full_message, application, time, data)
+          sink["logger"].send_message(severity, message, application, time, data)
         else
           if sink["color"]
-            color = COLORS.include? sink["color"] ? sink["color"].to_sym : sink["color"]
-            full_message = full_message.color(color)
+            color = (COLORS.include? sink["color"].to_sym) ? sink["color"].to_sym : sink["color"]
+            message = message.color(color)
           end
-          sink["logger"] << full_message
+          sink["logger"] << message
         end rescue nil
       end
 
