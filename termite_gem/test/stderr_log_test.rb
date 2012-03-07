@@ -10,7 +10,8 @@ class StderrLogTest < Scope::TestCase
   "application": "MyApp",
   "logging": {
     "stdout_level": "warn",
-    "stderr_level": "fatal"
+    "stderr_level": "fatal",
+    "stdout_color": "green"
   }
 }
 ECOLOGY_CONTENTS
@@ -25,14 +26,14 @@ ECOLOGY_CONTENTS
         @logger = Termite::Logger.new
       end
 
-      should "log fatal errors to STDERR" do
+      should "log fatal errors to STDERR with default color" do
         @stderr_logger.expects(:<<).with("oh no!".color(:red))
         STDOUT.expects(:puts).never
         @logger.fatal("oh no!")
       end
 
-      should "log warnings to STDOUT" do
-        @stdout_logger.expects(:<<).with("oh no!".color(:blue))
+      should "log warnings to STDOUT with overridden color" do
+        @stdout_logger.expects(:<<).with("oh no!".color(:green))
         STDERR.expects(:puts).never
         @logger.warn("oh no!")
       end
