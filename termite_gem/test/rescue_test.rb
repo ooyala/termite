@@ -14,7 +14,6 @@ class RescueTest < Scope::TestCase
       Syslog.expects(:open).yields(syslog_mock)
       syslog_mock.expects(:crit).raises(StandardError, "You suck even more than that!")
 
-
       # Then, it will fal back to UDP and raise an error
       @logger.socket.expects(:send).raises(StandardError, "You suck!")
 
