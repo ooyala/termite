@@ -9,14 +9,14 @@ class RescueTest < Scope::TestCase
     end
 
     should "continue even if all loggers raise errors" do
-      # First, UDP will raise an error
-      @logger.socket.expects(:send).raises(StandardError, "You suck!")
-
-      # Termite should fall back to trying Ruby Syslog...
+      # First, termite should try Ruby Syslog...
       syslog_mock = mock("Syslog connection")
       Syslog.expects(:open).yields(syslog_mock)
-      syslog_mock.expects(:error).with("Socket syslog failed!  Falling back to libc syslog!")
       syslog_mock.expects(:crit).raises(StandardError, "You suck even more than that!")
+
+
+      # Then, it will fal back to UDP and raise an error
+      @logger.socket.expects(:send).raises(StandardError, "You suck!")
 
       # And it should still try to write to a file logger - this is now just an extra logger
       # @logger.file_logger.expects(:fatal).raises(StandardError, "You suck lots!")

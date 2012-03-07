@@ -21,7 +21,7 @@ ECOLOGY_TEXT
       end
 
       should "correctly send logs to Syslog" do
-        @logger.socket.expects(:send)
+        expect_add(2, "foo! {}", :application => "foo_app")
         @logger.add(Logger::FATAL, "foo!", {})
       end
     end

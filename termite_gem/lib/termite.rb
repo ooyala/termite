@@ -158,8 +158,7 @@ module Termite
 
       # Syslog Sink
       syslog_sink = {"type" => "syslog"}
-      transport = Ecology.property("logging::transport") || options[:transport]
-      syslog_sink["transport"] = transport ? transport : "UDP"
+      syslog_sink["transport"] = Ecology.property("logging::transport") || options[:transport]
       sinks << syslog_sink
 
 
@@ -197,7 +196,7 @@ module Termite
       @loggers = sinks
 
       # Create syslog logger if not defined in sinks
-      add_logger(setup_syslog_logger(options), "type" => "syslog", "transport" => "UDP") unless syslog
+      add_logger(setup_syslog_logger(options), "type" => "syslog") unless syslog
 
       # Constructor params logger
       add_logger(::Logger.new(@log_filename, @shift_age || 0, @shift_size || 1048576), "type" => "file",
@@ -221,15 +220,11 @@ module Termite
     end
 
     def setup_syslog_logger(sink, options)
-      logger = SyslogLogger.new
-      if sink["transport"].nil? || sink["transport"] != "syscall"
-        # For UDP socket
-        @server_addr = options[:address] || "0.0.0.0"
-        @server_port = options[:port] ? options[:port].to_i : 514
-        @socket = find_or_create_socket(@server_addr, @server_port)
-        logger.setup_udp(@socket, @server_addr, @server_port)
-      end
-      logger
+      # For UDP socket
+      @server_addr = options[:address] || "0.0.0.0"
+      @server_port = options[:port] ? options[:port].to_i : 514
+      @socket = find_or_create_socket(@server_addr, @server_port)
+      SyslogLogger.new(@socket, @server_addr, @server_port, sink["transport"])
     end
 
     def setup_hastur_logger(sink, options)

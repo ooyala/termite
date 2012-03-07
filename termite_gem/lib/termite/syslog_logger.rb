@@ -1,7 +1,9 @@
+require "syslog"
+
 module Termite
   class SyslogLogger
-    def setup_udp(socket, server_addr, server_port)
-      @socket, @server_addr, @server_port = socket, server_addr, server_port
+    def initialize(socket, server_addr, server_port, transport)
+      @socket, @server_addr, @server_port, @transport = socket, server_addr, server_port, transport
     end
 
     def send_message(severity, full_message, application, time=Time.now, data={})
@@ -19,29 +21,25 @@ module Termite
 
       full_message.split("\n").each do |line|
         syslog_message = "#{line} #{data}"
-        @socket ? send_udp(severity, syslog_string, syslog_message, application) :
-                  send_libc(severity, syslog_message, application)
+        case @transport
+        when "UDP"
+          send_udp(severity, syslog_string, syslog_message, application)
+        when "syscall", "libc"
+          send_libc(severity, syslog_message, application) rescue nil
+        else
+          send_libc(severity, syslog_message, application) rescue
+            send_udp(severity, syslog_string, syslog_message, application)
+        end
       end
     end
 
     def send_udp(severity, syslog_string, syslog_message, application)
-      begin
-        @socket.send(syslog_string + syslog_message, 0, @server_addr, @server_port)
-      rescue Exception
-        # Didn't work.  Try built-in Ruby syslog
-        require "syslog"
-        Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
-          s.error("Socket syslog failed!  Falling back to libc syslog!") rescue nil
-          s.send(Logger::LEVEL_SYSLOG_MAP[severity], syslog_message) rescue nil
-        end
-      end
-
+        @socket.send(syslog_string + syslog_message, 0, @server_addr, @server_port) rescue nil
     end
 
     def send_libc(severity, syslog_message, application)
-      require "syslog"
       Syslog.open(application, Syslog::LOG_PID | Syslog::LOG_CONS) do |s|
-        s.send(Logger::LEVEL_SYSLOG_MAP[severity], syslog_message) rescue nil
+        s.send(Logger::LEVEL_SYSLOG_MAP[severity], syslog_message)
       end
     end
   end

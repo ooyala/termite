@@ -11,7 +11,7 @@ class TermiteExtraLoggerTest < Scope::TestCase
       setup do
         @logger = Termite::Logger.new("/tmp/test_log_output.txt")  # Test with output file
         @logger.level = Logger::DEBUG
-        @logger.socket.expects(:send)
+        Syslog.expects(:open)
         @mock_logger_1 = mock()
         @mock_logger_2 = mock()
         @logger.add_logger(@mock_logger_1)
