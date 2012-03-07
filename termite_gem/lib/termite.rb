@@ -173,6 +173,7 @@ module Termite
       sinks.each do |sink|
         cur_logger = case sink["type"]
           when "file"
+            sink["newline?"] = true unless sink.has_key? "newline?"
             case sink["filename"]
               when STDOUT
                 ::Logger.new(STDOUT)
@@ -182,8 +183,10 @@ module Termite
                 ::Logger.new(sink["filename"], sink["shift_age"] || 0, sink["shift_size"] || 1048576)
             end
           when "stdout"
+            sink["newline?"] = true unless sink.has_key? "newline?"
             ::Logger.new(STDOUT)
           when "stderr"
+            sink["newline?"] = true unless sink.has_key? "newline?"
             ::Logger.new(STDERR)
           when "syslog"
             syslog = true
@@ -289,14 +292,15 @@ module Termite
           $$, ruby_logger_severity, "", full_message]
 
       @loggers.each do |sink|
-        next if (sink["min_level"] && severity < sink["min_level"]) ||
-          (sink["max_level"] && severity > sink["max_level"]) ||
+        next if (sink["min_level"] && severity < string_to_severity(sink["min_level"])) ||
+          (sink["max_level"] && severity > string_to_severity(sink["max_level"])) ||
           sink["logger"].nil?
         message = sink["logger_prefix?"] ? ruby_logger_message : full_message
         message += " #{data}" if sink["logger_data?"]
         if sink["logger"].respond_to?(:send_message)
           sink["logger"].send_message(severity, message, application, time, data)
         else
+          message += "\n" if sink["newline?"] && sink["newline?"] != "false"
           if sink["color"]
             color = (COLORS.include? sink["color"].to_sym) ? sink["color"].to_sym : sink["color"]
             message = message.color(color)
