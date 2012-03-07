@@ -139,7 +139,8 @@ module Termite
         stderr_prefix = Ecology.property("logging::stderr_logger_prefix") || options[:stderr_logger_prefix]
         stderr_sink["logger_prefix?"] = stderr_prefix if stderr_prefix
       end
-      stderr_sink["color"] = Ecology.property("logging::stderr_color") || options[:stderr_color] || "red"
+      stderr_sink["color"] = Ecology.property("logging::stderr_color") || options[:stderr_color]
+      stderr_sink["color"] ||= "red" if STDERR.tty?
       sinks << stderr_sink if @console_print
 
       # STDOUT Sink
@@ -153,7 +154,8 @@ module Termite
         stdout_prefix = Ecology.property("logging::stdout_logger_prefix") || options[:stdout_logger_prefix]
         stdout_sink["logger_prefix?"] = stdout_prefix if stdout_prefix
       end
-      stdout_sink["color"] = Ecology.property("logging:stdout_color") || options[:stdout_color] || "blue"
+      stdout_sink["color"] = Ecology.property("logging:stdout_color") || options[:stdout_color]
+      stdout_sink["color"] ||= "blue" if STDOUT.tty?
       sinks << stdout_sink if @console_print
 
       # Syslog Sink
