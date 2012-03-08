@@ -44,27 +44,6 @@ class Scope::TestCase
     socket.expects(options[:method]).with(string, *options[:extra_args])
   end
 
-  def expect_hastur(logger, severity_num, raw_message, app_data, options = {})
-    initialize_environment
-
-    logger.expects(:send_message).with(severity_num, raw_message, app_data, Time.at(1315433360), options)
-    # message = {
-    #   :_route => :log,
-    #   :timestamp => 1315433360000000,
-    #   :message => raw_message,
-    #   :labels => {
-    #     :severity => Termite::Logger::LOGGER_LEVEL_MAP.invert[severity_num].to_s,
-    #     :pid => "1234",
-    #     :tid => "main",
-    #     :app => application,
-    #     :component => component,
-    #     :hostname => "samplehost"
-    #   }
-    # }
-    #
-    # socket.expects(:send).with(MultiJson.encode(message), 0, "127.0.0.1", 8125)
-  end
-
   def expect_console_add(socket, severity_num, message, options = {})
     initialize_environment
 

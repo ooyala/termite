@@ -41,17 +41,17 @@ ECOLOGY_CONTENTS
       end
 
       should "send back extra JSON data and a default component when specified" do
-        expect_hastur(@hastur_mock, 4, 'oh no!', {:combined => "MyApp:SplodgingLib", :app => "MyApp", :component => "SplodgingLib"}, '{"app_group":"SuperSpiffyGroup","precedence":7}')
+        @hastur_mock.expects(:send_message).with(4, 'oh no!', {:combined => "MyApp:SplodgingLib", :app => "MyApp", :component => "SplodgingLib"}, anything, '{"app_group":"SuperSpiffyGroup","precedence":7}')
         @logger.fatal("oh no!")
       end
 
       should "allow overriding the default component" do
-        expect_hastur(@hastur_mock, 4, 'oh no!', {:combined => "MyApp:SpliyingLib", :app => "MyApp", :component => "SpliyingLib"}, '{"app_group":"SuperSpiffyGroup","precedence":7}')
+        @hastur_mock.expects(:send_message).with(4, 'oh no!', {:combined => "MyApp:SpliyingLib", :app => "MyApp", :component => "SpliyingLib"}, anything, '{"app_group":"SuperSpiffyGroup","precedence":7}')
         @logger.fatal("oh no!", {}, :component => "SpliyingLib")
       end
 
       should "allow overriding the default component with nothing" do
-        expect_hastur(@hastur_mock, 4, 'oh no!', {:combined => nil, :app => "MyApp", :component => nil}, '{"app_group":"SuperSpiffyGroup","precedence":7}')
+        @hastur_mock.expects(:send_message).with(4, 'oh no!', {:combined => nil, :app => "MyApp", :component => nil}, anything, '{"app_group":"SuperSpiffyGroup","precedence":7}')
         @logger.fatal("oh no!", {}, :component => nil)
       end
     end
