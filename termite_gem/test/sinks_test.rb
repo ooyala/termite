@@ -25,6 +25,27 @@ class SinksTest < Scope::TestCase
 }
 ECOLOGY_CONTENTS
     end
+
+    context "with a default termite logger" do
+      setup do
+        @logger = Termite::Logger.new
+      end
+
+      should "send back extra JSON data and a default component when specified" do
+        expect_udp(@logger.socket, 2, 'oh no! {"app_group":"SuperSpiffyGroup","precedence":7}', :application => "MyApp:SplodgingLib")
+        @logger.fatal("oh no!")
+      end
+
+      should "allow overriding the default component" do
+        expect_udp(@logger.socket, 2, 'oh no! {"app_group":"SuperSpiffyGroup","precedence":7}', :application => "MyApp:SpliyingLib")
+        @logger.fatal("oh no!", {}, :component => "SpliyingLib")
+      end
+
+      should "allow overriding the default component with nothing" do
+        expect_udp(@logger.socket, 2, 'oh no! {"app_group":"SuperSpiffyGroup","precedence":7}', :application => "MyApp")
+        @logger.fatal("oh no!", {}, :component => nil)
+      end
+    end
   end
 
   context "with a sinked ecology" do
