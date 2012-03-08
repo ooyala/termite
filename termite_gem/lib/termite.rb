@@ -286,7 +286,8 @@ module Termite
       component = @default_component
       component = options[:component] if options.has_key?(:component)
 
-      application += ":" + component if component
+      combined_app = application + ":" + component if component
+      app_data = {:combined => combined_app, :app => application, :component => component}
 
       data ||= {}
       if data.is_a?(Hash)
@@ -315,7 +316,7 @@ module Termite
         message = sink["logger_prefix?"] ? ruby_logger_message : full_message
         message += " #{data}" if sink["logger_data?"]
         if sink["logger"].respond_to?(:send_message)
-          sink["logger"].send_message(severity, message, application, time, data)
+          sink["logger"].send_message(severity, message, app_data, time, data)
         else
           message += "\n" if sink["newline?"] && sink["newline?"] != "false"
           if sink["color"]

@@ -6,11 +6,12 @@ module Termite
       @socket, @server_addr, @server_port, @transport = socket, server_addr, server_port, transport
     end
 
-    def send_message(severity, full_message, application, time=Time.now, data='{}')
+    def send_message(severity, full_message, app_data, time=Time.now, data='{}')
       tid = Ecology.thread_id(::Thread.current)
       day = time.strftime("%b %d").sub(/0(\d)/, ' \\1')
       time_of_day = time.strftime("%T")
       hostname = Socket.gethostname
+      application = app_data[:combined] || app_data[:app]
 
       # Convert Ruby log level to syslog severity
       tag = Syslog::LOG_LOCAL6 + Logger::SYSLOG_SEVERITY_MAP[Logger::LEVEL_SYSLOG_MAP[severity]]
