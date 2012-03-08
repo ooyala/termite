@@ -1,6 +1,32 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class SinksTest < Scope::TestCase
+  context "with a sinked UDP ecology" do
+    setup do
+      Ecology.reset
+
+      set_up_ecology <<ECOLOGY_CONTENTS
+{
+  "application": "MyApp",
+  "logging": {
+    "default_component": "SplodgingLib",
+    "extra_json_fields": {
+      "app_group": "SuperSpiffyGroup",
+      "precedence": 7
+    },
+    "console_print": "off",
+    "sinks": [
+      {
+        "type": "syslog",
+        "transport": "UDP"
+      }
+    ]
+  }
+}
+ECOLOGY_CONTENTS
+    end
+  end
+
   context "with a sinked ecology" do
     setup do
       Ecology.reset
@@ -75,8 +101,6 @@ ECOLOGY_CONTENTS
     should "pass initialize parameters to Ruby Logger" do
       log_mock = mock("Ruby Logger")
       ::Logger.expects(:new).with("/tmp/bobo.txt", 10, 1024000).returns(log_mock)
-      ::Logger.expects(:new).with(STDOUT)
-      ::Logger.expects(:new).with(STDERR)
       Termite::Logger.new
     end
 
@@ -84,8 +108,6 @@ ECOLOGY_CONTENTS
       log_mock = mock("Ruby Logger")
       ::Logger.expects(:new).with("/tmp/bobo.txt", 10, 1024000).returns(log_mock)
       ::Logger.expects(:new).with("/var/lib/sam.log", "daily", 1048576).returns(log_mock)
-      ::Logger.expects(:new).with(STDOUT)
-      ::Logger.expects(:new).with(STDERR)
       Termite::Logger.new("/var/lib/sam.log", "daily")
     end
   end

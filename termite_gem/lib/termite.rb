@@ -186,18 +186,18 @@ module Termite
             sink["newline?"] = true unless sink.has_key? "newline?"
             case sink["filename"]
               when STDOUT
-                ::Logger.new(STDOUT)
+                ::Logger.new(STDOUT) if @console_print
               when STDERR
-                ::Logger.new(STDERR)
+                ::Logger.new(STDERR) if @console_print
               else
                 ::Logger.new(sink["filename"], sink["shift_age"] || 0, sink["shift_size"] || 1048576)
             end
           when "stdout"
             sink["newline?"] = true unless sink.has_key? "newline?"
-            ::Logger.new(STDOUT)
+            ::Logger.new(STDOUT) if @console_print
           when "stderr"
             sink["newline?"] = true unless sink.has_key? "newline?"
-            ::Logger.new(STDERR)
+            ::Logger.new(STDERR) if @console_print
           when "syslog"
             syslog = true
             setup_syslog_logger(sink, options)

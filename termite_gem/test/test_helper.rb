@@ -35,6 +35,15 @@ class Scope::TestCase
     syslog_mock.expects(Termite::Logger::SYSLOG_SEVERITY_MAP.invert[severity_num]).with(message)
   end
 
+  def expect_udp(socket, severity_num, message, options = {})
+    initialize_environment
+    app = options[:application] || "foo_app:whatcomponent"
+    string = "<#{Syslog::LOG_LOCAL6 + severity_num}>Sep  7 15:09:20 samplehost #{app} [1234]: [main] #{message}"
+    options[:method] ||= :send
+    options[:extra_args] ||= [0, "0.0.0.0", 514]
+    socket.expects(options[:method]).with(string, *options[:extra_args])
+  end
+
   def expect_console_add(socket, severity_num, message, options = {})
     initialize_environment
 
