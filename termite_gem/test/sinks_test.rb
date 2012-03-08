@@ -1,6 +1,58 @@
 require File.join(File.dirname(__FILE__), "test_helper.rb")
 
 class SinksTest < Scope::TestCase
+  context "with a hastur sink ecology" do
+    setup do
+      Ecology.reset
+
+      set_up_ecology <<ECOLOGY_CONTENTS
+{
+  "application": "MyApp",
+  "logging": {
+    "default_component": "SplodgingLib",
+    "extra_json_fields": {
+      "app_group": "SuperSpiffyGroup",
+      "precedence": 7
+    },
+    "console_print": "off",
+    "sinks": [
+      {
+        "type": "syslog",
+        "transport": "UDP"
+      },
+      {
+        "type": "hastur"
+      }
+    ]
+  }
+}
+ECOLOGY_CONTENTS
+    end
+
+    context "with a default termite logger" do
+      setup do
+        @hastur_mock = mock("Hastur Logger")
+        Termite::HasturLogger.expects(:new).returns(@hastur_mock)
+        @logger = Termite::Logger.new
+      end
+
+      should "send back extra JSON data and a default component when specified" do
+        expect_hastur(@hastur_mock, 4, 'oh no!', "MyApp:SplodgingLib", '{"app_group":"SuperSpiffyGroup","precedence":7}')
+        @logger.fatal("oh no!")
+      end
+
+      should "allow overriding the default component" do
+        expect_hastur(@hastur_mock, 4, 'oh no!', "MyApp:SpliyingLib", '{"app_group":"SuperSpiffyGroup","precedence":7}')
+        @logger.fatal("oh no!", {}, :component => "SpliyingLib")
+      end
+
+      should "allow overriding the default component with nothing" do
+        expect_hastur(@hastur_mock, 4, 'oh no!', "MyApp", '{"app_group":"SuperSpiffyGroup","precedence":7}')
+        @logger.fatal("oh no!", {}, :component => nil)
+      end
+    end
+  end
+
   context "with a sinked UDP ecology" do
     setup do
       Ecology.reset
@@ -83,14 +135,6 @@ ECOLOGY_CONTENTS
       },
       {
         "type": "syslog"
-      },
-      {
-        "type": "hastur",
-        "udp_port": 9199,
-        "labels": {
-          "app_flavor": "vanilla",
-          "track_for": "jbhat"
-        }
       }
     ]
   }

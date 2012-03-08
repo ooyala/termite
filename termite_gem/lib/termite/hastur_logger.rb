@@ -9,7 +9,7 @@ module Termite
       (time.to_f * 1_000_000).round
     end
 
-    def send_message(severity, raw_message, application, time=Time.now, data={})
+    def send_message(severity, raw_message, application, time=Time.now, data='{}')
       severity = Logger::LOGGER_LEVEL_MAP.invert[severity].to_s
       tid = Ecology.thread_id(::Thread.current)
       hostname = Socket.gethostname
