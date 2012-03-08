@@ -31,7 +31,7 @@ module Termite
         :hostname => hostname
       }
 
-      message[:labels] = labels.merge(data).merge(@labels)
+      message[:labels] = labels.merge(MultiJson.decode(data)).merge(@labels)
 
       @socket.send MultiJson.encode(message), 0, @addr, @port
     end

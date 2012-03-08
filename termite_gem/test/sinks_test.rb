@@ -21,7 +21,11 @@ class SinksTest < Scope::TestCase
         "transport": "UDP"
       },
       {
-        "type": "hastur"
+        "type": "hastur",
+        "labels": {
+          "hi": "lo",
+          "fast": "slo"
+        }
       }
     ]
   }
