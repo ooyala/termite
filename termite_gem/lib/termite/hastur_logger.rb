@@ -19,7 +19,7 @@ module Termite
       message = {
         :_route => :log,
         :timestamp => to_usec(time),
-        :message => raw_message,
+        :message => raw_message
       }
 
       labels = {
