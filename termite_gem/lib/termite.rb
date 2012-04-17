@@ -292,7 +292,7 @@ module Termite
       data ||= {}
       if data.is_a?(Hash)
         data = @default_fields.merge(data)
-        data = MultiJson.encode(data)
+        data = MultiJson.dump(data)
       elsif data.is_a?(String)
         # Can't merge a JSON string with default data
         raise "Can't merge a JSON string with extra fields!" unless @default_fields.empty?
