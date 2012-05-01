@@ -222,7 +222,8 @@ module Termite
           "shift_age" => @shift_age || 0,
           "shift_size" => @shift_size || 1048576,
           "logger_prefix?" => @use_logger_prefix,
-          "min_level" => @level
+          "min_level" => @level,
+          "newline?" => true
         )
       end
       # If the min level of all loggers is greater than @level, use that
