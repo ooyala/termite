@@ -302,13 +302,14 @@ module Termite
       end
 
       time = Time.now
-      full_message = clean(if raw_message
+      full_message = if raw_message
         raw_message
       elsif block
         block.call
       else
         "Error! Logger called with no message or block to execute! Trace: #{caller.join(", ")}"
-      end)
+      end
+      full_message = clean(full_message)
       # Lifted from Logger::Formatter
       ruby_logger_severity = RUBY_LOGGER_SEV_LABELS[severity]
       ruby_logger_message = "%s, [%s#%d] %5s -- %s: %s" % [ruby_logger_severity[0..0],
