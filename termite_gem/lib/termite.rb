@@ -111,7 +111,7 @@ module Termite
       @use_logger_prefix = Ecology.property("logging::use_logger_prefix") || options[:use_logger_prefix]
       @level = Ecology.property("logging::level") || options[:level]
       @level = string_to_severity(@level) if @level
-      @level ||= ::Logger::DEBUG
+      @level = ::Logger::DEBUG if @level.nil? || ENV["TERMITE_DEBUG"]
 
       sinks = Ecology.property("logging::sinks")
       sinks ? instantiate_sinks(sinks, options) : read_unsinked_ecology(options)
