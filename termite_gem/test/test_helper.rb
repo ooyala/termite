@@ -18,6 +18,7 @@ class Scope::TestCase
       Socket.stubs(:gethostname).returns("samplehost")
       Process.stubs(:pid).returns("1234")
       Ecology.stubs(:thread_id).returns("main")
+      ENV.delete "TERMITE_DEBUG"
 
       @initialized_test_env = true
     end
